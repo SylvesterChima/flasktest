@@ -1,0 +1,157 @@
+@import url("https://fonts.googleapis.com/css?family=Montserrat:400,700&display=swap");
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  list-style: none;
+  font-family: "Montserrat", sans-serif;
+}
+body {
+  padding: 0;
+}
+.bg-light{
+    height: calc(100vh - 50px);
+}
+.d-md-flex{
+    height: calc(100vh - 50px);
+}
+.topnav {
+  background-color: #ffff;
+  overflow: hidden;
+}
+.far.fa-user-circle {
+  font-size: 29px;
+  color: #726f6f;
+  padding-top: 10px;
+}
+.input-10 {
+  width: 40px;
+  color: #4c4c96;
+  font-weight: 600;
+}
+.topnav a {
+  float: left;
+  display: block;
+  color: #8d8b8b;
+  font-weight: 800;
+  font-size: 14px;
+  text-transform: uppercase;
+  padding: 14px 16px;
+  text-decoration: none;
+  border-bottom: 3px solid transparent;
+}
+.topnav a:hover {
+  color: black;
+  border-bottom: 3px solid red;
+}
+.topnav .active {
+  color: black;
+  border-bottom: 3px solid red;
+}
+.navbar-toggler:focus {
+  box-shadow: none;
+  outline: none;
+  border: none;
+}
+::placeholder {
+  font-size: 10px;
+}
+#navbar {
+  width: 20%;
+  background-color: #21214e !important;
+  height: 50px;
+  border: none;
+}
+#navbar a {
+  color: white;
+}
+.fas.fa-bars {
+  color: white;
+}
+#navbar2 {
+  width: 80%;
+}
+#navbar-items {
+  width: 20%;
+  height: 100%;
+  background-color: #4f4f8a;
+}
+ul#navbar-items li {
+  color: #b6b5b5;
+  padding: 15px 25px;
+  font-weight: 600;
+  text-transform: uppercase;
+  font-size: 10px;
+  display: flex;
+  align-items: center;
+}
+ul li .fas {
+  font-size: 16px;
+}
+ul#navbar-items li:hover {
+  background-color: #21214e;
+  color: white;
+}
+ul#navbar-items li a {
+    color: #b6b5b5;
+    text-decoration: none
+  }
+ul#navbar-items li a:hover {
+color: white;
+}
+ul li:hover .fas {
+  color: #f7910c;
+}
+#topnavbar {
+  width: 80%;
+}
+
+
+
+.form-control:focus {
+    box-shadow: none;
+    border-color: #BA68C8
+}
+
+.profile-button {
+    background: rgb(99, 39, 120);
+    box-shadow: none;
+    border: none
+}
+
+.profile-button:hover {
+    background: #682773
+}
+
+.profile-button:focus {
+    background: #682773;
+    box-shadow: none
+}
+
+.profile-button:active {
+    background: #682773;
+    box-shadow: none
+}
+
+.back:hover {
+    color: #682773;
+    cursor: pointer
+}
+
+.labels {
+    font-size: 11px
+}
+
+.add-experience:hover {
+    background: #BA68C8;
+    color: #fff;
+    cursor: pointer;
+    border: solid 1px #BA68C8
+}
+
+.hidenFile {
+  display: block;
+  visibility: hidden;
+  width: 0;
+  height: 0;
+}

@@ -1,0 +1,35 @@
+{% extends "account_layout.html" %}
+{% block content %}
+<div class="wrapper">
+    <div class="logo">
+        <img src="{{ url_for('static', filename='logo.png') }}" alt="">
+    </div>
+    <div class="text-center mt-4 name">Calendar App</div>
+    <form class="p-3 mt-3" action="/signup" method="post">
+        <div class="form-field d-flex align-items-center">
+            <span class="far fa-user"></span>
+            <input type="text" name="FirstName" id="firstName" placeholder="First Name">
+        </div>
+        <div class="form-field d-flex align-items-center">
+            <span class="far fa-user"></span>
+            <input type="text" name="LastName" id="lastName" placeholder="Last Name">
+        </div>
+        <div class="form-field d-flex align-items-center">
+            <span class="far fa-user"></span>
+            <input type="email" name="Email" id="email" placeholder="Email">
+        </div>
+        <div class="form-field d-flex align-items-center">
+            <span class="fas fa-key"></span>
+            <input type="password" name="Password1" id="pwd1" placeholder="Password">
+        </div>
+        <div class="form-field d-flex align-items-center">
+            <span class="fas fa-key"></span>
+            <input type="password" name="Password2" id="pwd2" placeholder="Confirm Password">
+        </div>
+        <button type="submit" class="btn mt-3">Sign Up</button>
+    </form>
+    <div class="text-center fs-6">
+        already have an account? <a href="/login">Sign In</a>
+    </div>
+</div>
+{% endblock %}

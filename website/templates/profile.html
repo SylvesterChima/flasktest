@@ -1,0 +1,112 @@
+{% extends "user_layout.html" %} {% block content %}
+<div class="container rounded bg-white mt-5 mb-5">
+  <div class="row">
+    <div class="col-md-3 border-right">
+      <form id="imageForm" class="d-flex flex-column align-items-center text-center p-3 py-5" action="/api_profile" method="post" enctype="multipart/form-data">
+        <img
+          class="rounded-circle mt-5 mb-2" id="profileImage"
+          width="150px"
+          src="{{ url_for('static', filename='uploads/') }}{{user.profile_image}}"/>
+          <span class="font-weight-bold">{{user.first_name}} {{user.last_name}}</span>
+          <span class="text-black-50">{{user.email}}</span>
+        <input type="file" class="hidenFile" id="hidenFile" accept=".png, .jpg, .jpeg, .gif" name="ProfileImage">
+        <div class="mt-2 text-center">
+          <button class="btn btn-primary" id="imageButton" type="button">
+            Change image
+          </button>
+        </div>
+      </form>
+    </div>
+    <div class="col-md-5 border-right">
+      <form class="p-3 py-5"  action="/profile" method="post">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+          <h4 class="text-right">Profile Settings</h4>
+        </div>
+        <div class="row mt-2">
+          <div class="col-md-6">
+            <label class="labels">Firstname</label
+            ><input
+              type="text"
+              name="FirstName"
+              class="form-control"
+              placeholder="first name"
+              value="{{user.first_name}}"
+            />
+          </div>
+          <div class="col-md-6">
+            <label class="labels">Lastname</label
+            ><input
+              type="text"
+              name="LastName"
+              class="form-control"
+              value="{{user.last_name}}"
+              placeholder="lastname"
+            />
+          </div>
+        </div>
+        <div class="row mt-3">
+          <div class="col-md-12">
+            <label class="labels">Mobile Number</label
+            ><input
+              type="text"
+              name="MobileNumber"
+              class="form-control"
+              placeholder="enter phone number"
+              value="{{user.mobile_phone}}"
+            />
+          </div>
+          <div class="col-md-12">
+            <label class="labels">Email</label
+            ><input
+              type="text"
+              readonly
+              class="form-control"
+              placeholder="Email"
+              value="{{user.email}}"
+            />
+          </div>
+          <div class="col-md-12">
+            <label class="labels">Address</label
+            ><input
+              type="text"
+              name="Address"
+              class="form-control"
+              placeholder="enter address line 2"
+              value="{{user.address}}"
+            />
+          </div>
+          
+        <div class="mt-5 text-center">
+          <button class="btn btn-primary profile-button" type="submit">
+            Save Profile
+          </button>
+        </div>
+        </div>
+      </form>
+    </div>
+
+    <div class="col-md-4">
+      
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block script %}
+  <script>
+    const upload = (file) => {
+      document.getElementById("profileImage").src = window.URL.createObjectURL(file);
+      document.getElementById("imageForm").submit();
+    };
+
+    const hidenFile = document.getElementById('hidenFile');
+    const imageButton = document.getElementById('imageButton');
+    const onSelectFile = () => upload(hidenFile.files[0]);
+    hidenFile.addEventListener('change', onSelectFile, false);
+
+    imageButton.addEventListener('click', function(){
+      hidenFile.click();
+    });
+
+  </script>
+{% endblock %}
