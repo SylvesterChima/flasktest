@@ -20,9 +20,11 @@ from . import db
 load_dotenv()
 views = Blueprint('views', __name__,)
 # token to verify that this bot is legit
+os.environ['VERIFY_TOKEN'] = 'yess'
 verify_token = os.getenv('VERIFY_TOKEN')
 # token to send messages through facebook messenger
 access_token = os.getenv('PAGE_ACCESS_TOKEN')
+access_token2 = os.environ['PAGE_ACCESS_TOKEN']
 
 ### WSGI App
 SCOPES = ['https://www.googleapis.com/auth/calendar.readonly']
@@ -58,20 +60,24 @@ def feedback():
 def webhook_verify():
     if request.args.get('hub.verify_token') == verify_token:
         return request.args.get('hub.challenge')
-    return verify_token
+    return verify_token + " and " + access_token2
 
 @views.route('/webhook', methods=['POST'])
 def webhook_action():
     data = json.loads(request.data.decode('utf-8'))
+    print(data)
     for entry in data['entry']:
         user_message = entry['messaging'][0]['message']['text']
         user_id = entry['messaging'][0]['sender']['id']
         response = {
             'recipient': {'id': user_id},
-            'message': {}
+            "messaging_type": "RESPONSE",
+            "message":{
+                "text":"Hello, world!"
+            }
         }
         response['message']['text'] = handle_message(user_id, user_message)
-        r = requests.post('https://graph.facebook.com/v2.6/me/messages/?access_token=' + access_token, json=response)
+        r = requests.post('https://graph.facebook.com/v16.0/108409538867050/messages/?access_token=' + access_token, json=response)
     return Response(response="EVENT RECEIVED",status=200)
 
 def handle_message(user_id, user_message):
