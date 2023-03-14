@@ -1,9 +1,12 @@
 from __future__ import print_function
 import uuid
-from flask import Blueprint,redirect,url_for,render_template,session,request,flash,current_app,jsonify
+from flask import Blueprint,redirect,url_for,render_template,session,request,flash,current_app,jsonify,Response
 import datetime
 import requests
 import os.path
+import os
+import json
+from dotenv import load_dotenv
 from google.auth.transport.requests import Request
 from google.oauth2.credentials import Credentials
 from google_auth_oauthlib.flow import InstalledAppFlow
@@ -14,8 +17,12 @@ from werkzeug.utils import secure_filename
 from .models import User
 from . import db
 
-
+load_dotenv()
 views = Blueprint('views', __name__,)
+# token to verify that this bot is legit
+verify_token = os.getenv('VERIFY_TOKEN')
+# token to send messages through facebook messenger
+access_token = os.getenv('PAGE_ACCESS_TOKEN')
 
 ### WSGI App
 SCOPES = ['https://www.googleapis.com/auth/calendar.readonly']
@@ -31,15 +38,45 @@ def feedback():
         session['token'] = uuid.uuid4().hex
         return render_template('feedback.html', user=current_user,message="")
     else:
+        wp_token = os.getenv("wp_token")
         message = request.form.get('Message')
-        json_data = {"messaging_product": "whatsapp","recipient_type":"individual","to": "2348036496516","type": "text", "text": {"body": message}}
+        json_data = {"messaging_product": "whatsapp","to": "2348036496516","type": "template",
+        "template": {
+            "name": "hello_world",
+            "language": {
+                "code": "en_US"
+            }
+        }}
         headers = {
-            'Authorization': f'Bearer EAAQbRDOmCCgBAASFG2MeA95NernvcsZBHZAipjwCXoOFg1CWGKJHkhQIpbDLqtZBaTpaYdn54uQ60FY5LT1BgQxDVbZCZChJ1mHSZCEeQ2DF6l138lV3pIMHXV4HqcZA6ZBFAScv7Yieia6KgjLDTASET6BGycJukqGEodQjw0FgSXa4ysCwxXYdFAaDNPvOrPivSygw15al4QZDZD',
+            'Authorization': f'Bearer ' + wp_token,
             'Content-Type': 'application/json'
         }
         response = requests.post("https://graph.facebook.com/v15.0/110958208603472/messages", headers=headers, json=json_data)
         return render_template('feedback.html', user=current_user, message=message)
 
+@views.route('/webhook', methods=['GET'])
+def webhook_verify():
+    if request.args.get('hub.verify_token') == verify_token:
+        return request.args.get('hub.challenge')
+    return verify_token
+
+@views.route('/webhook', methods=['POST'])
+def webhook_action():
+    data = json.loads(request.data.decode('utf-8'))
+    for entry in data['entry']:
+        user_message = entry['messaging'][0]['message']['text']
+        user_id = entry['messaging'][0]['sender']['id']
+        response = {
+            'recipient': {'id': user_id},
+            'message': {}
+        }
+        response['message']['text'] = handle_message(user_id, user_message)
+        r = requests.post('https://graph.facebook.com/v2.6/me/messages/?access_token=' + access_token, json=response)
+    return Response(response="EVENT RECEIVED",status=200)
+
+def handle_message(user_id, user_message):
+    # DO SOMETHING with the user_message ... ¯\_(ツ)_/¯
+    return "Hello "+user_id+" ! You just sent me : " + user_message
 
 @views.route('/dashboard')
 @login_required

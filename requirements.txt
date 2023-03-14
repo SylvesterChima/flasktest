@@ -16,3 +16,4 @@ Flask-OAuthlib
 Authlib
 pyrebase4
 flask-googlemaps
+python-dotenv
