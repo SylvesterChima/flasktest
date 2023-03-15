@@ -29,7 +29,10 @@ def is_message_notification(data):
             for entry in data["entry"]:
                 for changes_event in entry["changes"]: #3shan ad5ol 3la list 
                     if changes_event["field"] == "messages":
-                        return True
+                        if changes_event["value"].get("messages"):
+                            return True
+                        else:
+                            return False
                     else:
                         return False
         else:
