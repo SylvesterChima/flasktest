@@ -46,16 +46,10 @@ def webhook_verify():
 
 @chat.route('/webhook', methods=['POST'])
 def webhook_action():
-    data = json.loads(request.data.decode('utf-8'))
-    payload = request.get_data()
     mjson = request.get_json()
-    logging.error("****** payload ******")
-    logging.error(payload)
-    logging.error("****** end payload ******")
     logging.error("****** mjson ******")
     logging.error(mjson)
     logging.error("****** end mjson ******")
-    logging.error(data)
     if is_message_notification(mjson):
         for entry in mjson["entry"]:
             for messaging_event in entry["messaging"]: #3shan ad5ol 3la list 
@@ -122,10 +116,13 @@ def wp_webhook_verify():
 @chat.route('/whatsapp/webhook', methods=['POST'])
 def wp_webhook_action():
     mjson = request.get_json()
+    logging.error("****** wp mjson ******")
+    logging.error(mjson)
+    logging.error("****** end wp mjson ******")
     if is_message_notification(mjson):
         for entry in mjson["entry"]:
             for changes in entry["changes"]:
-                for messages in entry["value"]["messages"]:
+                for messages in changes["value"]["messages"]:
                     message_id = messages["id"]
                     timestamp = messages["timestamp"]
                     message_type = messages["type"]
