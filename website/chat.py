@@ -26,7 +26,7 @@ def webhook_verify():
 @chat.route('/webhook', methods=['POST'])
 def webhook_action():
     data = json.loads(request.data.decode('utf-8'))
-    logging.info(data)
+    logging.error(data)
     for entry in data['entry']:
         user_message = entry['messaging'][0]['message']['text']
         user_id = entry['messaging'][0]['sender']['id']
@@ -56,7 +56,7 @@ def insta_webhook_verify():
 @chat.route('/instagram/webhook', methods=['POST'])
 def insta_webhook_action():
     data = json.loads(request.data.decode('utf-8'))
-    logging.info(data)
+    logging.error(data)
     for entry in data['entry']:
         user_message = entry['messaging'][0]['message']['text']
         user_id = entry['messaging'][0]['sender']['id']
@@ -86,7 +86,7 @@ def wp_webhook_verify():
 @chat.route('/whatsapp/webhook', methods=['POST'])
 def wp_webhook_action():
     data = json.loads(request.data.decode('utf-8'))
-    logging.info(data)
+    logging.error(data)
     json_data = {"messaging_product": "whatsapp","to": "2348036496516","type": "template",
     "template": {
         "name": "hello_world",
