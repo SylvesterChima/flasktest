@@ -14,6 +14,13 @@ fb_access_token = os.getenv('FB_ACCESS_TOKEN')
 insta_access_token = os.getenv('INSTA_ACCESS_TOKEN')
 wp_access_token = os.getenv('WP_ACCESS_TOKEN')
 
+def is_json_key_present(json, key):
+    try:
+        buf = json[key]
+    except KeyError:
+        return False
+
+    return True
 
 
 # facebook messenger webhook
@@ -26,6 +33,10 @@ def webhook_verify():
 @chat.route('/webhook', methods=['POST'])
 def webhook_action():
     data = json.loads(request.data.decode('utf-8'))
+    payload = request.get_data()
+    logging.error("****** payload ******")
+    logging.error(payload)
+    logging.error("****** end payload ******")
     logging.error(data)
     for entry in data['entry']:
         user_message = entry['messaging'][0]['message']['text']
