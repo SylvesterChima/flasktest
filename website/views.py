@@ -16,6 +16,7 @@ from flask_login import login_user, login_required, logout_user, current_user
 from werkzeug.utils import secure_filename
 from .models import User
 from . import db
+import logging
 
 load_dotenv()
 views = Blueprint('views', __name__,)
@@ -31,6 +32,7 @@ def home():
 @views.route('/feedback', methods=['GET', 'POST'])
 def feedback():
     if request.method == 'GET':
+        logging.error("just a test")
         session['token'] = uuid.uuid4().hex
         return render_template('feedback.html', user=current_user,message="")
     else:

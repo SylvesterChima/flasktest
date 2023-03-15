@@ -12,7 +12,7 @@ UPLOAD_FOLDER = 'website/static/uploads/'
 ENV = 'prod'
 def create_app():
     app = Flask(__name__)
-    logging.basicConfig(filename='record.log', level=logging.INFO, format=f'%(asctime)s %(levelname)s %(name)s : %(message)s')
+    logging.basicConfig(format=f'%(asctime)s %(levelname)s %(name)s : %(message)s')
     app.config['SECRET_KEY'] = 'hjhjhjhjhdhjhdhjhgsjkhdshds'
     app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
     app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024
