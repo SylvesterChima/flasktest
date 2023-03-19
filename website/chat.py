@@ -63,24 +63,55 @@ def webhook_action():
                 sender_id = messaging_event["sender"]["id"]
                 recipient_id = messaging_event["recipient"]["id"] #bgeb mn eldict elrecipient key
                 timestamp = messaging_event["timestamp"]
+                datetime_obj = datetime.fromtimestamp(timestamp)
 
                 if "text" in messaging_event["message"]: #key:text 
                     message_id = messaging_event["message"]["mid"]
                     sender_message = messaging_event["message"]["text"] # message text ="hello there"
-                    response = {
-                        'recipient': {'id': sender_id},
-                        "messaging_type": "RESPONSE",
-                        "message":{
-                            "text": fb_handle_message(sender_id, sender_message)
+
+                    conv=Conversation.query.filter_by(conv_id=sender_id).first()
+                    if conv is None:
+                        new_conv = Conversation(name=sender_id, conv_id = sender_id, type="fb")
+                        db.session.add(new_conv)
+
+                        member = Member(name=sender_id, mobile_phone = "phone", conversation_id=new_conv.id)
+                        db.session.add(member)
+
+                        message = Message(message_id = message_id, message_type="facebook",sender=sender_id, sender_message=sender_message,timestamp=datetime_obj, conversation_id=new_conv.id, member_id=member.id)
+                        db.session.add(message)
+                        db.session.commit()
+                        response = {
+                            'recipient': {'id': sender_id},
+                            "messaging_type": "RESPONSE",
+                            "message":{
+                                "text": fb_handle_message(sender_id, sender_message)
+                            }
                         }
-                    }
-                    r = requests.post('https://graph.facebook.com/v16.0/108409538867050/messages/?access_token=' + fb_access_token, json=response)
+                        r = requests.post('https://graph.facebook.com/v16.0/108409538867050/messages/?access_token=' + fb_access_token, json=response)
+                    else:
+                        member = Member.query.filter(and_(sender = sender_id, conversation_id=conv.id)).first()
+                        message = Message(message_id = message_id, message_type="facebook",sender=sender_id, sender_message=sender_message,timestamp=datetime_obj, conversation_id=conv.id, member_id=member.id)
+                        db.session.add(message)
+                        db.session.commit()
+
+                        last_message = Message.query.filter(and_(sender = sender_id, conversation_id=conv.id)).order_by(Message.id.desc()).first()
+                        hour_difference = (datetime.utcnow - last_message.timestamp).total_seconds() / 3600
+                        if hour_difference >= 1:
+                            response = {
+                                'recipient': {'id': sender_id},
+                                "messaging_type": "RESPONSE",
+                                "message":{
+                                    "text": fb_handle_message(sender_id, sender_message)
+                                }
+                            }
+                            r = requests.post('https://graph.facebook.com/v16.0/108409538867050/messages/?access_token=' + fb_access_token, json=response)
+
     return Response(response="EVENT RECEIVED",status=200)
 
 
 def fb_handle_message(user_id, user_message):
     # DO SOMETHING with the user_message ... ¯\_(ツ)_/¯
-    return "Hello "+user_id+" ! You just sent me : " + user_message
+    return "Hi, how can I help you?"
 
 
 # inatagram messenger webhook
