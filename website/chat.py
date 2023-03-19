@@ -1,11 +1,15 @@
 from flask import Blueprint,redirect,url_for,render_template,session,request,flash,current_app,jsonify,Response
+from .models import User, Conversation, Member, Message
 import datetime
 import requests
 import os.path
 import os
+from flask_login import login_user, login_required, logout_user, current_user
 import json
 from dotenv import load_dotenv
 import logging
+from sqlalchemy import and_, or_
+from . import db
 
 load_dotenv()
 chat = Blueprint('chat', __name__,)
@@ -88,9 +92,11 @@ def insta_webhook_verify():
 
 @chat.route('/instagram/webhook', methods=['POST'])
 def insta_webhook_action():
-    data = json.loads(request.data.decode('utf-8'))
-    logging.error(data)
-    for entry in data['entry']:
+    mjson = request.get_json()
+    logging.error("****** insta mjson ******")
+    logging.error(mjson)
+    logging.error("****** end insta mjson ******")
+    for entry in mjson['entry']:
         user_message = entry['messaging'][0]['message']['text']
         user_id = entry['messaging'][0]['sender']['id']
         response = {
@@ -101,7 +107,7 @@ def insta_webhook_action():
             }
         }
         response['message']['text'] = insta_handle_message(user_id, user_message)
-        r = requests.post('https://graph.facebook.com/v16.0/108409538867050/messages/?access_token=' + insta_access_token, json=response)
+        r = requests.post('https://graph.facebook.com/v16.0/100323863013649/messages/?access_token=' + insta_access_token, json=response)
     return Response(response="EVENT RECEIVED",status=200)
 
 def insta_handle_message(user_id, user_message):
@@ -125,22 +131,85 @@ def wp_webhook_action():
         logging.error("****** end wp mjson ******")
         for entry in mjson["entry"]:
             for changes in entry["changes"]:
+                name = changes["contacts"][0]["profile"]["name"]
+                conv_id = changes["value"]["metadata"]["phone_number_id"]
                 for messages in changes["value"]["messages"]:
                     message_id = messages["id"]
                     timestamp = messages["timestamp"]
                     message_type = messages["type"]
                     sender = messages["from"]
                     sender_message = messages["text"]["body"]
+                    datetime_obj = datetime.fromtimestamp(timestamp)
 
-                    json_data = {"messaging_product": "whatsapp","to": "2348036496516","type": "template",
-                    "template": {
-                        "name": "hello_world",
-                        "language": {
-                            "code": "en_US"
-                        }
-                    }}
-                    response = requests.post('https://graph.facebook.com/v16.0/110958208603472/messages?access_token=' + wp_access_token, json=json_data)
+                    conv=Conversation.query.filter_by(conv_id=conv_id).first()
+                    if conv is None:
+                        new_conv = Conversation(name=name, conv_id = conv_id, type="wp")
+                        db.session.add(new_conv)
+
+                        member = Member(name=name, mobile_phone = sender, conversation_id=new_conv.id)
+                        db.session.add(member)
+
+                        message = Message(message_id = message_id, message_type=message_type,sender=sender, sender_message=sender_message,timestamp=datetime_obj, conversation_id=new_conv.id, member_id=member.id)
+                        db.session.add(message)
+                        db.session.commit()
+                        json_data = {"messaging_product": "whatsapp","to": sender,"type": "template",
+                        "template": {
+                            "name": "hello_world",
+                            "language": {
+                                "code": "en_US"
+                            }
+                        }}
+                        response = requests.post('https://graph.facebook.com/v16.0/110958208603472/messages?access_token=' + wp_access_token, json=json_data)
+                    else:
+                        member = Member.query.filter(and_(sender = sender, conversation_id=conv.id)).first()
+                        message = Message(message_id = message_id, message_type=message_type,sender=sender, sender_message=sender_message,timestamp=datetime_obj, conversation_id=conv.id, member_id=member.id)
+                        db.session.add(message)
+                        db.session.commit()
+
+                        last_message = Message.query.filter(and_(sender = sender, conversation_id=conv.id)).order_by(Message.id.desc()).first()
+                        hour_difference = (datetime.utcnow - last_message.timestamp).total_seconds() / 3600
+                        if hour_difference >= 1:
+                            json_data = {"messaging_product": "whatsapp","to": sender,"type": "template",
+                            "template": {
+                                "name": "hello_world",
+                                "language": {
+                                    "code": "en_US"
+                                }
+                            }}
+                            response = requests.post('https://graph.facebook.com/v16.0/110958208603472/messages?access_token=' + wp_access_token, json=json_data)
+
     return Response(response="EVENT RECEIVED",status=200)
+
+@chat.route('/whatsapp', methods=['GET'])
+@login_required
+def whatsapp():
+    return render_template('whatsapp.html', user=current_user)
+
+@chat.route('/wp', methods=['GET'])
+def wp():
+    conversations = Conversation.query.all()
+    return jsonify(conversations)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 def wp_handle_message(user_id, user_message):
     # DO SOMETHING with the user_message ... ¯\_(ツ)_/¯

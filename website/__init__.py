@@ -4,10 +4,13 @@ from flask_sqlalchemy import SQLAlchemy
 from os import path
 from flask_login import LoginManager
 from flask_apscheduler import APScheduler
+import urllib
 import logging
+import pyodbc
 
 scheduler = APScheduler()
 db = SQLAlchemy()
+uri = urllib.parse.quote_plus("Driver=ODBC+Driver+17+for+SQL+Server;Server=tcp:dflask-server.database.windows.net,1433;Database=dflask_data;Uid=dflask;Pwd=@Standup12;Encrypt=yes;TrustServerCertificate=no;Connection Timeout=30;")
 UPLOAD_FOLDER = 'website/static/uploads/'
 ENV = 'prod'
 def create_app():
@@ -20,14 +23,15 @@ def create_app():
         app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql://postgres:admin@localhost/demodata'
         #app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///market.db'
     else:
-        app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql://doadmin:AVNS_PlJYov1KdJ0blTTEDGQ@db-postgresql-nyc1-70741-do-user-12666756-0.b.db.ondigitalocean.com:25060/defaultdb?sslmode=require' #'postgresql://troologserver:G!etout12@troolog-chima-server.postgres.database.azure.com/demodata?sslmode=require'
+        #app.config['SQLALCHEMY_DATABASE_URI'] = 'mssql+pyodbc://dflask:@Standup12@dflask-server.database.windows.net/dflask_data?driver=ODBC+Driver+17+for+SQL+Server'
+        app.config['SQLALCHEMY_DATABASE_URI'] = "mssql+pyodbc:///?odbc_connect=%s" % uri
 
     app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 
-    with app.app_context():
-        db.init_app(app)
+    #with app.app_context():
+    #    db.init_app(app)
 
-    #db.init_app(app)
+    db.init_app(app)
 
 
 
@@ -64,7 +68,7 @@ def send_reminder():
 def create_database(app):
     # if not path.exists('website/' + DB_NAME):
     #     db.create_all(app=app)
-    #db.create_all(app=app)
+    db.create_all(app=app)
     print('Created Database!')
 
 def send_email_job(app):
