@@ -10,7 +10,7 @@ import pyodbc
 
 scheduler = APScheduler()
 db = SQLAlchemy()
-uri = urllib.parse.quote_plus("Driver=ODBC+Driver+17+for+SQL+Server;Server=tcp:dflask-server.database.windows.net,1433;Database=dflask_data;Uid=dflask;Pwd=@Standup12;Encrypt=yes;TrustServerCertificate=no;Connection Timeout=30;")
+uri = urllib.parse.quote_plus("Driver=ODBC+Driver+18+for+SQL+Server;Server=tcp:troologserver.database.windows.net,1433;Database=troologdata;Uid=troolog;Pwd=@Admin12;Encrypt=yes;TrustServerCertificate=no;Connection Timeout=30;")
 UPLOAD_FOLDER = 'website/static/uploads/'
 ENV = 'prod'
 def create_app():
