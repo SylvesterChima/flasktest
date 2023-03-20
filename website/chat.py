@@ -204,7 +204,7 @@ def wp_webhook_action():
                         db.session.commit()
 
                         last_message = Message.query.filter(and_(Message.sender == sender, Message.Conversation_id==conv.id)).order_by(Message.id.desc()).first()
-                        hour_difference = (datetime.utcnow - last_message.timestamp).total_seconds() / 3600
+                        hour_difference = (datetime.utcnow() - last_message.timestamp).total_seconds() / 3600
                         if hour_difference >= 1:
                             json_data = {"messaging_product": "whatsapp","to": sender,"type": "template",
                             "template": {
