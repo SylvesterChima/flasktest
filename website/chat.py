@@ -228,9 +228,9 @@ def wp():
     for con in conversations:
         logging.error("****** conversations ******")
         logging.error(con.name)
-        logging.error(Conversation.query.all().count())
+        logging.error(json.dumps(Conversation.serialize_list(conversations)))
         logging.error("****** conversations ******")
-    return jsonify(conversations)
+    return jsonify(conversations = Conversation.serialize_list(conversations))
 
 
 
