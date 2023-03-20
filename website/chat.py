@@ -63,7 +63,7 @@ def webhook_action():
                 sender_id = messaging_event["sender"]["id"]
                 recipient_id = messaging_event["recipient"]["id"] #bgeb mn eldict elrecipient key
                 timestamp = messaging_event["timestamp"]
-                datetime_obj = datetime.fromtimestamp(int(timestamp))
+                datetime_obj = datetime.fromtimestamp(timestamp)
 
                 if "text" in messaging_event["message"]: #key:text 
                     message_id = messaging_event["message"]["mid"]
@@ -74,10 +74,10 @@ def webhook_action():
                         new_conv = Conversation(name=sender_id, conv_id = sender_id, type="fb")
                         db.session.add(new_conv)
 
-                        member = Member(name=sender_id, mobile_phone = "phone", conversation_id=new_conv.id)
+                        member = Member(name=sender_id, mobile_phone = "phone", Conversation_id=new_conv.id)
                         db.session.add(member)
 
-                        message = Message(message_id = message_id, message_type="facebook",sender=sender_id, sender_message=sender_message,timestamp=datetime_obj, conversation_id=new_conv.id, member_id=member.id)
+                        message = Message(message_id = message_id, message_type="facebook",sender=sender_id, sender_message=sender_message,timestamp=datetime_obj, Conversation_id=new_conv.id, member_id=member.id)
                         db.session.add(message)
                         db.session.commit()
                         response = {
@@ -89,12 +89,12 @@ def webhook_action():
                         }
                         r = requests.post('https://graph.facebook.com/v16.0/108409538867050/messages/?access_token=' + fb_access_token, json=response)
                     else:
-                        member = Member.query.filter(and_(sender = sender_id, conversation_id=conv.id)).first()
-                        message = Message(message_id = message_id, message_type="facebook",sender=sender_id, sender_message=sender_message,timestamp=datetime_obj, conversation_id=conv.id, member_id=member.id)
+                        member = Member.query.filter(and_(sender = sender_id, Conversation_id=conv.id)).first()
+                        message = Message(message_id = message_id, message_type="facebook",sender=sender_id, sender_message=sender_message,timestamp=datetime_obj, Conversation_id=conv.id, member_id=member.id)
                         db.session.add(message)
                         db.session.commit()
 
-                        last_message = Message.query.filter(and_(sender = sender_id, conversation_id=conv.id)).order_by(Message.id.desc()).first()
+                        last_message = Message.query.filter(and_(sender = sender_id, Conversation_id=conv.id)).order_by(Message.id.desc()).first()
                         hour_difference = (datetime.utcnow - last_message.timestamp).total_seconds() / 3600
                         if hour_difference >= 1:
                             response = {
@@ -179,10 +179,10 @@ def wp_webhook_action():
                         new_conv = Conversation(name=name, conv_id = conv_id, type="wp")
                         db.session.add(new_conv)
 
-                        member = Member(name=name, mobile_phone = sender, conversation_id=new_conv.id)
+                        member = Member(name=name, mobile_phone = sender, Conversation_id=new_conv.id)
                         db.session.add(member)
 
-                        message = Message(message_id = message_id, message_type=message_type,sender=sender, sender_message=sender_message,timestamp=datetime_obj, conversation_id=new_conv.id, member_id=member.id)
+                        message = Message(message_id = message_id, message_type=message_type,sender=sender, sender_message=sender_message,timestamp=datetime_obj, Conversation_id=new_conv.id, member_id=member.id)
                         db.session.add(message)
                         db.session.commit()
                         json_data = {"messaging_product": "whatsapp","to": sender,"type": "template",
@@ -194,12 +194,12 @@ def wp_webhook_action():
                         }}
                         response = requests.post('https://graph.facebook.com/v16.0/110958208603472/messages?access_token=' + wp_access_token, json=json_data)
                     else:
-                        member = Member.query.filter(and_(sender = sender, conversation_id=conv.id)).first()
-                        message = Message(message_id = message_id, message_type=message_type,sender=sender, sender_message=sender_message,timestamp=datetime_obj, conversation_id=conv.id, member_id=member.id)
+                        member = Member.query.filter(and_(sender = sender, Conversation_id=conv.id)).first()
+                        message = Message(message_id = message_id, message_type=message_type,sender=sender, sender_message=sender_message,timestamp=datetime_obj, Conversation_id=conv.id, member_id=member.id)
                         db.session.add(message)
                         db.session.commit()
 
-                        last_message = Message.query.filter(and_(sender = sender, conversation_id=conv.id)).order_by(Message.id.desc()).first()
+                        last_message = Message.query.filter(and_(sender = sender, Conversation_id=conv.id)).order_by(Message.id.desc()).first()
                         hour_difference = (datetime.utcnow - last_message.timestamp).total_seconds() / 3600
                         if hour_difference >= 1:
                             json_data = {"messaging_product": "whatsapp","to": sender,"type": "template",
