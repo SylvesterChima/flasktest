@@ -222,15 +222,68 @@ def wp_webhook_action():
 def whatsapp():
     return render_template('whatsapp.html', user=current_user)
 
-@chat.route('/wp', methods=['GET'])
-def wp():
+@chat.route('/conversations', methods=['GET'])
+def conversations():
+    result = []
     conversations = Conversation.query.all()
     for con in conversations:
-        logging.error("****** conversations ******")
-        logging.error(con.name)
-        logging.error(json.dumps(Conversation.serialize_list(conversations)))
-        logging.error("****** conversations ******")
-    return jsonify(conversations = Conversation.serialize_list(conversations))
+        new_obj = {
+            'id':con.id,
+            'name': con.name,
+            'conv_id': con.conv_id,
+            'type': con.type,
+            'date_created': con.date_created
+        }
+        result.append(new_obj)
+    return jsonify(result)
+
+@chat.route('/messages', methods=['GET'])
+def messages():
+    result = []
+    messages = Message.query.all()
+    for con in messages:
+        new_obj = {
+            'id':con.id,
+            'message_id': con.message_id,
+            'message_type': con.message_type,
+            'sender': con.sender,
+            'sender_message': con.sender_message,
+            'timestamp': con.timestamp,
+            'Conversation_id': con.Conversation_id,
+            'Member_id': con.Member_id
+        }
+        result.append(new_obj)
+    return jsonify(result)
+
+@chat.route('/sendmessage', methods=['POST'])
+def messages():
+    type = request.form.get('Type')
+    message = request.form.get('Message')
+    sender = request.form.get('Sender')
+    if type == "wp":
+        new_obj = {
+            'id':"con.id",
+            'message_id': "con.message_id",
+            'message_type': "con.message_type",
+            'sender': "con.sender",
+            'sender_message': "con.sender_message",
+            'timestamp': "con.timestamp",
+            'Conversation_id': "con.Conversation_id",
+            'Member_id': "con.Member_id"
+        }
+        return jsonify(new_obj)
+    else:
+        new_obj = {
+            'id':"con.id",
+            'message_id': "con.message_id",
+            'message_type': "con.message_type",
+            'sender': "con.sender",
+            'sender_message': "con.sender_message",
+            'timestamp': "con.timestamp",
+            'Conversation_id': "con.Conversation_id",
+            'Member_id': "con.Member_id"
+        }
+        return jsonify(new_obj)
 
 
 
