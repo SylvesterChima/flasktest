@@ -225,6 +225,14 @@ def whatsapp():
 @chat.route('/wp', methods=['GET'])
 def wp():
     conversations = Conversation.query.all()
+    logging.error("****** conversations ******")
+    logging.error(conversations)
+    logging.error("****** conversations ******")
+    
+    first = Conversation.query.first()
+    logging.error("****** first ******")
+    logging.error(first)
+    logging.error("****** first ******")
     return jsonify(conversations)
 
 
