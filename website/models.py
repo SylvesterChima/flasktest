@@ -1,10 +1,11 @@
 from . import db
 from flask_login import UserMixin
 from datetime import datetime
+from dataclasses import dataclass
 # from sqlalchemy.sql import func
 
 
-
+@dataclass
 class User(db.Model, UserMixin):
     id = db.Column(db.Integer, primary_key=True)
     email = db.Column(db.String(150), unique=True)
@@ -15,6 +16,7 @@ class User(db.Model, UserMixin):
     address = db.Column(db.String(500))
     profile_image = db.Column(db.String(2000))
 
+@dataclass
 class Conversation(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String())
@@ -25,6 +27,7 @@ class Conversation(db.Model):
     members = db.relationship('Member',backref='conversation')
 
 
+@dataclass
 class Member(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(300))
@@ -33,6 +36,7 @@ class Member(db.Model):
     messages = db.relationship('Message',backref='member')
 
 
+@dataclass
 class Message(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     message_id = db.Column(db.String())

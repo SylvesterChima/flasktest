@@ -3,7 +3,6 @@ from .models import User, Conversation, Member, Message
 from datetime import datetime
 import requests
 import os.path
-import jsonpickle
 import os
 from flask_login import login_user, login_required, logout_user, current_user
 import json
@@ -92,12 +91,12 @@ def webhook_action():
                         }
                         r = requests.post('https://graph.facebook.com/v16.0/108409538867050/messages/?access_token=' + fb_access_token, json=response)
                     else:
-                        member = Member.query.filter(and_(sender = sender_id, Conversation_id=conv.id)).first()
+                        member = Member.query.filter(and_(Member.mobile_phone == sender_id, Member.Conversation_id==conv.id)).first()
                         message = Message(message_id = message_id, message_type="facebook",sender=sender_id, sender_message=sender_message,timestamp=datetime_obj, Conversation_id=conv.id, Member_id=member.id)
                         db.session.add(message)
                         db.session.commit()
 
-                        last_message = Message.query.filter(and_(sender = sender_id, Conversation_id=conv.id)).order_by(Message.id.desc()).first()
+                        last_message = Message.query.filter(and_(Message.sender == sender_id, Message.Conversation_id==conv.id)).order_by(Message.id.desc()).first()
                         hour_difference = (datetime.utcnow - last_message.timestamp).total_seconds() / 3600
                         if hour_difference >= 1:
                             response = {
@@ -199,7 +198,7 @@ def wp_webhook_action():
                         }}
                         response = requests.post('https://graph.facebook.com/v16.0/110958208603472/messages?access_token=' + wp_access_token, json=json_data)
                     else:
-                        member = Member.query.filter(and_(Member.sender == sender, Member.Conversation_id==conv.id)).first()
+                        member = Member.query.filter(and_(Member.mobile_phone == sender, Member.Conversation_id==conv.id)).first()
                         message = Message(message_id = message_id, message_type=message_type,sender=sender, sender_message=sender_message,timestamp=datetime_obj, Conversation_id=conv.id, Member_id=member.id)
                         db.session.add(message)
                         db.session.commit()
@@ -226,7 +225,7 @@ def whatsapp():
 @chat.route('/wp', methods=['GET'])
 def wp():
     conversations = Conversation.query.all()
-    return jsonpickle.encode(conversations)
+    return jsonify(conversations)
 
 
 
