@@ -1,6 +1,6 @@
 from flask import Blueprint,redirect,url_for,render_template,session,request,flash,current_app,jsonify,Response
 from .models import User, Conversation, Member, Message
-import datetime
+from datetime import datetime
 import requests
 import os.path
 import os
@@ -63,7 +63,7 @@ def webhook_action():
                 sender_id = messaging_event["sender"]["id"]
                 recipient_id = messaging_event["recipient"]["id"] #bgeb mn eldict elrecipient key
                 timestamp = messaging_event["timestamp"]
-                datetime_obj = datetime.fromtimestamp(timestamp)
+                datetime_obj = datetime.fromtimestamp(int(timestamp))
 
                 if "text" in messaging_event["message"]: #key:text 
                     message_id = messaging_event["message"]["mid"]
@@ -162,7 +162,9 @@ def wp_webhook_action():
         logging.error("****** end wp mjson ******")
         for entry in mjson["entry"]:
             for changes in entry["changes"]:
-                name = changes["contacts"][0]["profile"]["name"]
+                name = "user"
+                for contacts in changes["value"]["contacts"]:
+                    name = contacts["profile"]["name"]
                 conv_id = changes["value"]["metadata"]["phone_number_id"]
                 for messages in changes["value"]["messages"]:
                     message_id = messages["id"]
@@ -170,7 +172,7 @@ def wp_webhook_action():
                     message_type = messages["type"]
                     sender = messages["from"]
                     sender_message = messages["text"]["body"]
-                    datetime_obj = datetime.fromtimestamp(timestamp)
+                    datetime_obj = datetime.fromtimestamp(int(timestamp))
 
                     conv=Conversation.query.filter_by(conv_id=conv_id).first()
                     if conv is None:
