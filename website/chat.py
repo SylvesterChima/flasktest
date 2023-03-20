@@ -77,7 +77,7 @@ def webhook_action():
                         member = Member(name=sender_id, mobile_phone = "phone", Conversation_id=new_conv.id)
                         db.session.add(member)
 
-                        message = Message(message_id = message_id, message_type="facebook",sender=sender_id, sender_message=sender_message,timestamp=datetime_obj, Conversation_id=new_conv.id, member_id=member.id)
+                        message = Message(message_id = message_id, message_type="facebook",sender=sender_id, sender_message=sender_message,timestamp=datetime_obj, Conversation_id=new_conv.id, Member_id=member.id)
                         db.session.add(message)
                         db.session.commit()
                         response = {
@@ -90,7 +90,7 @@ def webhook_action():
                         r = requests.post('https://graph.facebook.com/v16.0/108409538867050/messages/?access_token=' + fb_access_token, json=response)
                     else:
                         member = Member.query.filter(and_(sender = sender_id, Conversation_id=conv.id)).first()
-                        message = Message(message_id = message_id, message_type="facebook",sender=sender_id, sender_message=sender_message,timestamp=datetime_obj, Conversation_id=conv.id, member_id=member.id)
+                        message = Message(message_id = message_id, message_type="facebook",sender=sender_id, sender_message=sender_message,timestamp=datetime_obj, Conversation_id=conv.id, Member_id=member.id)
                         db.session.add(message)
                         db.session.commit()
 
@@ -182,7 +182,7 @@ def wp_webhook_action():
                         member = Member(name=name, mobile_phone = sender, Conversation_id=new_conv.id)
                         db.session.add(member)
 
-                        message = Message(message_id = message_id, message_type=message_type,sender=sender, sender_message=sender_message,timestamp=datetime_obj, Conversation_id=new_conv.id, member_id=member.id)
+                        message = Message(message_id = message_id, message_type=message_type,sender=sender, sender_message=sender_message,timestamp=datetime_obj, Conversation_id=new_conv.id, Member_id=member.id)
                         db.session.add(message)
                         db.session.commit()
                         json_data = {"messaging_product": "whatsapp","to": sender,"type": "template",
@@ -195,7 +195,7 @@ def wp_webhook_action():
                         response = requests.post('https://graph.facebook.com/v16.0/110958208603472/messages?access_token=' + wp_access_token, json=json_data)
                     else:
                         member = Member.query.filter(and_(sender = sender, Conversation_id=conv.id)).first()
-                        message = Message(message_id = message_id, message_type=message_type,sender=sender, sender_message=sender_message,timestamp=datetime_obj, Conversation_id=conv.id, member_id=member.id)
+                        message = Message(message_id = message_id, message_type=message_type,sender=sender, sender_message=sender_message,timestamp=datetime_obj, Conversation_id=conv.id, Member_id=member.id)
                         db.session.add(message)
                         db.session.commit()
 
