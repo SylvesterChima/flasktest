@@ -256,7 +256,7 @@ def messages():
     return jsonify(result)
 
 @chat.route('/sendmessage', methods=['POST'])
-def messages():
+def sendmessage():
     type = request.form.get('Type')
     message = request.form.get('Message')
     sender = request.form.get('Sender')
