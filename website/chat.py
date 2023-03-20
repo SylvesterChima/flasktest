@@ -259,8 +259,19 @@ def messages():
 def sendmessage():
     type = request.form.get('Type')
     message = request.form.get('Message')
-    sender = request.form.get('Sender')
+    recepient = request.form.get('recepient')
     if type == "wp":
+        msg = {
+            "messaging_product": "whatsapp",
+            "recipient_type": "individual",
+            "to": recepient,
+            "type": "text",
+            "text": {
+                "preview_url": False,
+                "body": message
+            }
+        }
+        response = requests.post('https://graph.facebook.com/v16.0/110958208603472/messages?access_token=' + wp_access_token, json=msg)
         new_obj = {
             'id':"con.id",
             'message_id': "con.message_id",
@@ -284,7 +295,6 @@ def sendmessage():
             'Member_id': "con.Member_id"
         }
         return jsonify(new_obj)
-
 
 
 
