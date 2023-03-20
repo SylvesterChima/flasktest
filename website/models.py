@@ -15,7 +15,7 @@ class Serializer(object):
         return [m.serialize() for m in l]
 
 
-class User(db.Model, UserMixin):
+class User(db.Model, UserMixin, Serializer):
     id = db.Column(db.Integer, primary_key=True)
     email = db.Column(db.String(150), unique=True)
     password = db.Column(db.String(150))
@@ -30,7 +30,7 @@ class User(db.Model, UserMixin):
         del d['password']
         return d
 
-class Conversation(db.Model):
+class Conversation(db.Model,Serializer):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String())
     conv_id = db.Column(db.String(200))
@@ -45,7 +45,7 @@ class Conversation(db.Model):
 
 
 
-class Member(db.Model):
+class Member(db.Model,Serializer):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(300))
     mobile_phone = db.Column(db.String(15))
@@ -57,7 +57,7 @@ class Member(db.Model):
         return d
 
 
-class Message(db.Model):
+class Message(db.Model,Serializer):
     id = db.Column(db.Integer, primary_key=True)
     message_id = db.Column(db.String())
     message_type = db.Column(db.String())
