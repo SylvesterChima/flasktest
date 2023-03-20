@@ -73,9 +73,11 @@ def webhook_action():
                     if conv is None:
                         new_conv = Conversation(name=sender_id, conv_id = sender_id, type="fb")
                         db.session.add(new_conv)
+                        db.session.commit()
 
                         member = Member(name=sender_id, mobile_phone = "phone", Conversation_id=new_conv.id)
                         db.session.add(member)
+                        db.session.commit()
 
                         message = Message(message_id = message_id, message_type="facebook",sender=sender_id, sender_message=sender_message,timestamp=datetime_obj, Conversation_id=new_conv.id, Member_id=member.id)
                         db.session.add(message)
@@ -178,9 +180,11 @@ def wp_webhook_action():
                     if conv is None:
                         new_conv = Conversation(name=name, conv_id = conv_id, type="wp")
                         db.session.add(new_conv)
+                        db.session.commit()
 
                         member = Member(name=name, mobile_phone = sender, Conversation_id=new_conv.id)
                         db.session.add(member)
+                        db.session.commit()
 
                         message = Message(message_id = message_id, message_type=message_type,sender=sender, sender_message=sender_message,timestamp=datetime_obj, Conversation_id=new_conv.id, Member_id=member.id)
                         db.session.add(message)
