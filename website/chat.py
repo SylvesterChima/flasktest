@@ -244,9 +244,9 @@ def conversations():
     return jsonify(result)
 
 @chat.route('/messages/<int:id>', methods=['GET'])
-def messages():
+def messages(id):
     result = []
-    messages = Message.query.filter_by(id=id).all()
+    messages = Message.query.filter_by(Conversation_id=id).all()
     for con in messages:
         new_obj = {
             'id':con.id,
@@ -263,6 +263,7 @@ def messages():
 
 @chat.route('/sendmessage', methods=['POST'])
 def sendmessage():
+    type = request.form.get('type')
     conversationId = request.form.get('conversationId')
     memberId = request.form.get('memberId')
     message = request.form.get('Message')
@@ -300,7 +301,6 @@ def sendmessage():
                 'Member_id': memberId
             }
         return jsonify(new_obj)
-
     else:
         new_obj = {
             'id':"con.id",
