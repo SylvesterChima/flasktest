@@ -44,6 +44,8 @@ def is_message_notification(data):
     except KeyError:
         return False
 
+
+
 # facebook messenger webhook
 @chat.route('/webhook', methods=['GET'])
 def webhook_verify():
@@ -76,6 +78,8 @@ def webhook_action():
                         db.session.commit()
 
                         member = Member(name=sender_id, mobile_phone = "phone", Conversation_id=new_conv.id)
+                        db.session.add(member)
+                        member = Member(name="Business", mobile_phone = "Business", Conversation_id=new_conv.id)
                         db.session.add(member)
                         db.session.commit()
 
@@ -184,6 +188,8 @@ def wp_webhook_action():
 
                         member = Member(name=name, mobile_phone = sender, Conversation_id=new_conv.id)
                         db.session.add(member)
+                        member = Member(name="Business", mobile_phone = "Business", Conversation_id=new_conv.id)
+                        db.session.add(member)
                         db.session.commit()
 
                         message = Message(message_id = message_id, message_type=message_type,sender=sender, sender_message=sender_message,timestamp=datetime_obj, Conversation_id=new_conv.id, Member_id=member.id)
@@ -237,10 +243,10 @@ def conversations():
         result.append(new_obj)
     return jsonify(result)
 
-@chat.route('/messages', methods=['GET'])
+@chat.route('/messages/<int:id>', methods=['GET'])
 def messages():
     result = []
-    messages = Message.query.all()
+    messages = Message.query.filter_by(id=id).all()
     for con in messages:
         new_obj = {
             'id':con.id,
@@ -257,7 +263,8 @@ def messages():
 
 @chat.route('/sendmessage', methods=['POST'])
 def sendmessage():
-    type = request.form.get('Type')
+    conversationId = request.form.get('conversationId')
+    memberId = request.form.get('memberId')
     message = request.form.get('Message')
     recepient = request.form.get('recepient')
     if type == "wp":
@@ -271,17 +278,27 @@ def sendmessage():
                 "body": message
             }
         }
+        timestamp = datetime.utcnow()
         response = requests.post('https://graph.facebook.com/v16.0/110958208603472/messages?access_token=' + wp_access_token, json=msg)
-        new_obj = {
-            'id':"con.id",
-            'message_id': "con.message_id",
-            'message_type': "con.message_type",
-            'sender': "con.sender",
-            'sender_message': "con.sender_message",
-            'timestamp': "con.timestamp",
-            'Conversation_id': "con.Conversation_id",
-            'Member_id': "con.Member_id"
-        }
+        logging.error("****** wp send resp json ******")
+        logging.error(response)
+        if response.status_code == 200:
+            data = jsonify(response.json())
+            logging.error(data)
+            logging.error("****** wp send resp json ******")
+            # message = Message(message_id = message_id, message_type=message_type,sender=sender, sender_message=sender_message,timestamp=datetime_obj, Conversation_id=new_conv.id, Member_id=member.id)
+            # db.session.add(message)
+            # db.session.commit()
+            new_obj = {
+                'id':"con.id",
+                'message_id': data["messages"][0]["id"],
+                'message_type': "wp",
+                'sender': "Business",
+                'sender_message': message,
+                'timestamp': timestamp,
+                'Conversation_id': conversationId,
+                'Member_id': memberId
+            }
         return jsonify(new_obj)
     else:
         new_obj = {
