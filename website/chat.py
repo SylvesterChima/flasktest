@@ -65,7 +65,7 @@ def webhook_action():
                 sender_id = messaging_event["sender"]["id"]
                 recipient_id = messaging_event["recipient"]["id"] #bgeb mn eldict elrecipient key
                 timestamp = messaging_event["timestamp"]
-                datetime_obj = datetime.fromtimestamp(int(timestamp))
+                datetime_obj = datetime.fromtimestamp(int(timestamp)/1000)
 
                 if "text" in messaging_event["message"]: #key:text 
                     message_id = messaging_event["message"]["mid"]
@@ -293,7 +293,7 @@ def sendmessage():
             db.session.commit()
             new_obj = {
                 'id':messageObj.id,
-                'message_id': message,
+                'message_id': message_id,
                 'message_type': "text",
                 'sender': "Business",
                 'sender_message': message,
