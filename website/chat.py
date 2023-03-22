@@ -300,7 +300,7 @@ def sendmessage():
                 'Conversation_id': conversationId,
                 'Member_id': memberId
             }
-            return jsonify(data)
+            return data
         return 200
     else:
         new_obj = {
