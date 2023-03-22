@@ -284,7 +284,7 @@ def sendmessage():
         logging.error("****** wp send resp json ******")
         logging.error(response)
         if response.status_code == 200:
-            data = jsonify(response.json())
+            data = json.loads(response.text)
             logging.error(data)
             logging.error("****** wp send resp json ******")
             # message = Message(message_id = message_id, message_type=message_type,sender=sender, sender_message=sender_message,timestamp=datetime_obj, Conversation_id=new_conv.id, Member_id=member.id)
@@ -292,7 +292,7 @@ def sendmessage():
             # db.session.commit()
             new_obj = {
                 'id':"con.id",
-                'message_id': "gg", #data["messages"][0]["id"],
+                'message_id': data["messages"][0]["id"],
                 'message_type': "wp",
                 'sender': "Business",
                 'sender_message': message,
