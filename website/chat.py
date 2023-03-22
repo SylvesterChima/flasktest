@@ -292,7 +292,7 @@ def sendmessage():
             # db.session.commit()
             new_obj = {
                 'id':"con.id",
-                'message_id': data["messages"][0]["id"],
+                'message_id': "gg", #data["messages"][0]["id"],
                 'message_type': "wp",
                 'sender': "Business",
                 'sender_message': message,
@@ -300,7 +300,8 @@ def sendmessage():
                 'Conversation_id': conversationId,
                 'Member_id': memberId
             }
-        return jsonify(new_obj)
+            return jsonify(data)
+        return 200
     else:
         new_obj = {
             'id':"con.id",
