@@ -1,4 +1,4 @@
-from flask import Blueprint,redirect,url_for,render_template,session,request,flash,current_app,jsonify,Response
+from flask import Blueprint,redirect,url_for,render_template,session,request,flash,current_app,jsonify,Response,make_response
 from .models import User, Conversation, Member, Message
 from datetime import datetime
 import requests
@@ -65,7 +65,7 @@ def webhook_action():
                 sender_id = messaging_event["sender"]["id"]
                 recipient_id = messaging_event["recipient"]["id"] #bgeb mn eldict elrecipient key
                 timestamp = messaging_event["timestamp"]
-                datetime_obj = datetime.fromtimestamp(timestamp)
+                datetime_obj = datetime.fromtimestamp(int(timestamp))
 
                 if "text" in messaging_event["message"]: #key:text 
                     message_id = messaging_event["message"]["mid"]
@@ -101,8 +101,8 @@ def webhook_action():
                         db.session.commit()
 
                         last_message = Message.query.filter(and_(Message.sender == sender_id, Message.Conversation_id==conv.id)).order_by(Message.id.desc()).first()
-                        hour_difference = (datetime.utcnow - last_message.timestamp).total_seconds() / 3600
-                        if hour_difference >= 1:
+                        hour_difference = (datetime.utcnow() - last_message.timestamp).total_seconds() / 3600
+                        if hour_difference >= 24:
                             response = {
                                 'recipient': {'id': sender_id},
                                 "messaging_type": "RESPONSE",
@@ -211,7 +211,7 @@ def wp_webhook_action():
 
                         last_message = Message.query.filter(and_(Message.sender == sender, Message.Conversation_id==conv.id)).order_by(Message.id.desc()).first()
                         hour_difference = (datetime.utcnow() - last_message.timestamp).total_seconds() / 3600
-                        if hour_difference >= 1:
+                        if hour_difference >= 24:
                             json_data = {"messaging_product": "whatsapp","to": sender,"type": "template",
                             "template": {
                                 "name": "hello_world",
@@ -285,35 +285,33 @@ def sendmessage():
         logging.error(response)
         if response.status_code == 200:
             data = json.loads(response.text)
+            message_id = data["messages"][0]["id"]
             logging.error(data)
             logging.error("****** wp send resp json ******")
-            # message = Message(message_id = message_id, message_type=message_type,sender=sender, sender_message=sender_message,timestamp=datetime_obj, Conversation_id=new_conv.id, Member_id=member.id)
-            # db.session.add(message)
-            # db.session.commit()
+            messageObj = Message(message_id = message_id, message_type="text",sender="Business", sender_message=message,timestamp=timestamp, Conversation_id=conversationId, Member_id=memberId)
+            db.session.add(messageObj)
+            db.session.commit()
             new_obj = {
-                'id':"con.id",
-                'message_id': data["messages"][0]["id"],
-                'message_type': "wp",
+                'id':messageObj.id,
+                'message_id': message,
+                'message_type': "text",
                 'sender': "Business",
                 'sender_message': message,
                 'timestamp': timestamp,
                 'Conversation_id': conversationId,
                 'Member_id': memberId
             }
-            return data
-        return 200
+            resp = make_response(new_obj)
+            resp.status_code = 200
+            return resp
+        else:
+            resp = make_response("message failed")
+            resp.status_code = 400
+            return resp
     else:
-        new_obj = {
-            'id':"con.id",
-            'message_id': "con.message_id",
-            'message_type': "con.message_type",
-            'sender': "con.sender",
-            'sender_message': "con.sender_message",
-            'timestamp': "con.timestamp",
-            'Conversation_id': "con.Conversation_id",
-            'Member_id': "con.Member_id"
-        }
-        return jsonify(new_obj)
+        resp = make_response("message failed")
+        resp.status_code = 400
+        return resp
 
 
 
