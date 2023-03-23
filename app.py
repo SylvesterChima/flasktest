@@ -4,8 +4,10 @@ from flask_googlemaps import GoogleMaps, Map, icons
 from flask import render_template
 from flask_login import login_user, login_required, logout_user, current_user
 import os
+from flask_cors import CORS
 
 app = create_app()
+CORS(app)
 app.config['MAIL_SERVER']='smtp.gmail.com'
 app.config['MAIL_PORT'] = 465
 app.config['MAIL_USERNAME'] = "sylvesterchima11@gmail.com"

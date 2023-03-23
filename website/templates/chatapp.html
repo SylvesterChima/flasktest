@@ -1,0 +1,62 @@
+{% extends "base.html" %}
+{% block content %}
+<div id="app">
+    <div class="container">
+        <div class="row">
+          <div class="col-lg-12">
+            <div class="row">
+              <div class="col-lg-4 align-self-center">
+                <ul>
+                  <li v-for="item in conversations">
+                    [[ item.name ]]
+                  </li>
+                </ul>
+              </div>
+              <div class="col-lg-8">
+                [[ recipient ]]
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+</div>
+<script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+<script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+<script>
+  var baseUri = "http://troologdemo.azurewebsites.net";
+  const { createApp } = Vue
+    createApp({
+      data() {
+        return {
+          conversations: [],
+          recipient: "hello"
+        }
+      },
+      delimiters: ['[[', ']]'],
+      methods: {
+        GetConversations(){
+          axios.get(baseUri + '/conversations')
+            .then(function (response) {
+              console.log("*************")
+              console.log(response)
+              console.log("****")
+              console.log(response.data)
+              console.log("*************")
+              this.conversations = response;
+            })
+            .catch(function (error) {
+              // handle error
+              console.log(error);
+            })
+            .finally(function () {
+              // always executed
+            });
+        }
+      },
+      mounted() {
+        this.GetConversations()
+      }
+    }).mount('#app')
+</script>
+<!-- <script src="./scripts/chatapp.js"></script> -->
+{% endblock %}
