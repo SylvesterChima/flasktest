@@ -240,14 +240,7 @@ def conversations():
         result = []
         conversations = Conversation.query.all()
         for con in conversations:
-            new_obj = {
-                'id':con.id,
-                'name': con.name,
-                'conv_id': con.conv_id,
-                'type': con.type,
-                'date_created': con.date_created,
-                'recipients': []
-            }
+            members = []
             for mem in con.members:
                 new_mem ={
                     'id': mem.id,
@@ -255,7 +248,17 @@ def conversations():
                     'mobile_phone': mem.mobile_phone,
                     'Conversation_id': mem.Conversation_id
                 }
-                new_obj.recipients.append(new_mem)
+                members.append(new_mem)
+
+            new_obj = {
+                'id':con.id,
+                'name': con.name,
+                'conv_id': con.conv_id,
+                'type': con.type,
+                'date_created': con.date_created,
+                'members': members
+            }
+
             result.append(new_obj)
         return jsonify(result)
     except Exception as e:
