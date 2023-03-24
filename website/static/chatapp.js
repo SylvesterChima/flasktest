@@ -42,25 +42,27 @@ var baseUri = "http://troologdemo.azurewebsites.net";
           this.messages = [];
           this.conversation = conv;
 					const _this = this;
-          mem = conv.members.filter(member => member.mobile_phone != "Business");
-          console.log(mem)
-          axios.get(baseUri + '/messages/' + conv.id)
-            .then(function (response) {
-              _this.messages = response.data;
-              _this.newMessage.recipient = mem[0].mobile_phone;
-              _this.newMessage.memberId = mem[0].id;
-              _this.newMessage.conversationId = conv.id;
-              _this.newMessage.type = conv.type;
-              _this.newMessage.message = "";
-            })
-            .catch(function (error) {
-              // handle error
-              console.log("*******22222****");
-              console.log(error);
-            })
-            .finally(function () {
-              // always executed
-            });
+          if(conv.members.length > 0){
+            mem = conv.members.filter(member => member.mobile_phone != "Business");
+            console.log(mem)
+            axios.get(baseUri + '/messages/' + conv.id)
+              .then(function (response) {
+                _this.messages = response.data;
+                _this.newMessage.recipient = mem[0].mobile_phone;
+                _this.newMessage.memberId = mem[0].id;
+                _this.newMessage.conversationId = conv.id;
+                _this.newMessage.type = conv.type;
+                _this.newMessage.message = "";
+              })
+              .catch(function (error) {
+                // handle error
+                console.log("*******22222****");
+                console.log(error);
+              })
+              .finally(function () {
+                // always executed
+              });
+          }
         },
         SendMessage(newMessage){
           const _this = this;

@@ -28,7 +28,7 @@ class Conversation(db.Model):
 class Member(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(300))
-    mobile_phone = db.Column(db.String(15))
+    mobile_phone = db.Column(db.String())
     Conversation_id = db.Column(db.Integer, db.ForeignKey('conversation.id'),nullable=False)
     messages = db.relationship('Message',backref='member')
 
