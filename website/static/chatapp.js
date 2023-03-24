@@ -63,20 +63,21 @@ var baseUri = "http://troologdemo.azurewebsites.net";
             });
         },
         SendMessage(newMessage){
-          console.log("*******55555****");
+          const _this = this;
           console.log(newMessage);
           if(newMessage.message != ""){
             console.log(newMessage);
             axios.post(baseUri + '/sendmessage', {
               type: newMessage.type,
-              Message: newMessage.message,
+              message: newMessage.message,
               recipient: newMessage.recipient,
               conversationId: newMessage.conversationId,
               memberId: newMessage.memberId
             })
             .then(function (response) {
-              console.log(response);
-              this.messages.push(response.data)
+              console.log("*******55555****");
+              console.log(response.data);
+              _this.messages.push(response.data)
             })
             .catch(function (error) {
               console.log(error);

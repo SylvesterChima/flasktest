@@ -46,7 +46,7 @@
         </div>
         <div class="msg_history">
           <div v-for="msg in messages">
-            <div v-if="msg.mobile_phone != 'Business'" class="incoming_msg">
+            <div v-if="msg.sender != 'Business'" class="incoming_msg">
               <div class="incoming_msg_img"> <img src="https://ptetutorials.com/images/user-profile.png" alt="sunil"> </div>
               <div class="received_msg">
                 <div class="received_withd_msg">
