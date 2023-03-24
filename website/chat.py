@@ -246,8 +246,16 @@ def conversations():
                 'conv_id': con.conv_id,
                 'type': con.type,
                 'date_created': con.date_created,
-                'recipients': con.members
+                'recipients': []
             }
+            for mem in con.members:
+                new_mem ={
+                    'id': mem.id,
+                    'name': mem.name,
+                    'mobile_phone': mem.mobile_phone,
+                    'Conversation_id': mem.Conversation_id
+                }
+                new_obj.recipients.append(new_mem)
             result.append(new_obj)
         return jsonify(result)
     except Exception as e:
