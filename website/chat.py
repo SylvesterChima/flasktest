@@ -245,7 +245,8 @@ def conversations():
                 'name': con.name,
                 'conv_id': con.conv_id,
                 'type': con.type,
-                'date_created': con.date_created
+                'date_created': con.date_created,
+                'recipients': con.members
             }
             result.append(new_obj)
         return jsonify(result)
