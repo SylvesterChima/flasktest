@@ -89,13 +89,21 @@ def webhook_action():
 
                             member = Member(name=sender_id, mobile_phone = sender_id, Conversation_id=new_conv.id)
                             db.session.add(member)
+                            logging.info("****** member mjson ******")
+                            logging.info(member)
                             member = Member(name="Business", mobile_phone = "Business", Conversation_id=new_conv.id)
                             db.session.add(member)
+                            logging.info("****** member2 mjson ******")
+                            logging.info(member)
                             db.session.commit()
+                            logging.info("****** commit mjson ******")
+                            logging.info(member)
 
                             message = Message(message_id = message_id, message_type="text",sender=sender_id, sender_message=sender_message,timestamp=datetime_obj, Conversation_id=new_conv.id, Member_id=member.id)
                             db.session.add(message)
                             db.session.commit()
+                            logging.info("****** message mjson ******")
+                            logging.info(member)
                             response = {
                                 'recipient': {'id': sender_id},
                                 "messaging_type": "RESPONSE",
