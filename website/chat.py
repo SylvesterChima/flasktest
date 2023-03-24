@@ -315,11 +315,12 @@ def recentmessages(conversationId):
 @chat.route('/sendmessage', methods=['POST'])
 def sendmessage():
     try:
-        type = request.form.get('type')
-        conversationId = request.form.get('conversationId')
-        memberId = request.form.get('memberId')
-        message = request.form.get('Message')
-        recipient = request.form.get('recepient')
+        data = request.get_json()
+        type = data['type']
+        conversationId = data['conversationId']
+        memberId = data['memberId']
+        message = data['message']
+        recipient = data['recipient']
         if type == "wp":
             msg = {
                 "messaging_product": "whatsapp",
@@ -331,6 +332,7 @@ def sendmessage():
                     "body": message
                 }
             }
+            logging.info(msg)
             timestamp = datetime.utcnow()
             response = requests.post('https://graph.facebook.com/v16.0/110958208603472/messages?access_token=' + wp_access_token, json=msg)
             if response.status_code == 200:
@@ -364,6 +366,7 @@ def sendmessage():
                     "text": message
                 }
             }
+            logging.info(msg)
             timestamp = datetime.utcnow()
             response = requests.post('https://graph.facebook.com/v16.0/108409538867050/messages/?access_token=' + fb_access_token, json=msg)
             if response.status_code == 200:

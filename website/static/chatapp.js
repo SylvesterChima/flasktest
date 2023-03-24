@@ -38,15 +38,17 @@ var baseUri = "http://troologdemo.azurewebsites.net";
         },
         GetMessages(conv){
           console.log("***********");
+          console.log(conv.members)
           this.messages = [];
           this.conversation = conv;
 					const _this = this;
           mem = conv.members.filter(member => member.mobile_phone != "Business");
+          console.log(mem)
           axios.get(baseUri + '/messages/' + conv.id)
             .then(function (response) {
               _this.messages = response.data;
-              _this.newMessage.recipient = mem.mobile_phone;
-              _this.newMessage.memberId = mem.member_id;
+              _this.newMessage.recipient = mem[0].mobile_phone;
+              _this.newMessage.memberId = mem[0].id;
               _this.newMessage.conversationId = conv.id;
               _this.newMessage.type = conv.type;
               _this.newMessage.message = "";
@@ -61,8 +63,17 @@ var baseUri = "http://troologdemo.azurewebsites.net";
             });
         },
         SendMessage(newMessage){
+          console.log("*******55555****");
+          console.log(newMessage);
           if(newMessage.message != ""){
-            axios.post('/sendmessage', newMessage)
+            console.log(newMessage);
+            axios.post(baseUri + '/sendmessage', {
+              type: newMessage.type,
+              Message: newMessage.message,
+              recipient: newMessage.recipient,
+              conversationId: newMessage.conversationId,
+              memberId: newMessage.memberId
+            })
             .then(function (response) {
               console.log(response);
               this.messages.push(response.data)

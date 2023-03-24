@@ -64,8 +64,8 @@
         <div class="type_msg">
           <div class="input_msg_write">
             <input type="text" class="write_msg" v-model="newMessage.message" placeholder="Type a message" />
-            <button class="msg_send_btn" type="button"><i class="fa-solid fa-paper-plane" v-on:click="SendMessage(newMessage)"></i></button>
           </div>
+          <button class="msg_send_btn" type="button" v-on:click="SendMessage(newMessage)"><i class="fa-solid fa-paper-plane" v-on:click="SendMessage(newMessage)"></i></button>
         </div>
       </div>
     </div>
