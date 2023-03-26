@@ -216,7 +216,17 @@ def wp_webhook_action():
                     conv_id = changes["value"]["metadata"]["phone_number_id"]
                     for messages in changes["value"]["messages"]:
                         message_id = messages["id"]
+                        logging.error("****** after id mjson ******")
+                        logging.error(messages)
+                        try:
+                            dt = changes["value"]["messages"][0]["timestamp"]
+                            logging.error("****** direct timestamp mjson ******")
+                            logging.error(dt)
+                        except Exception as e:
+                            logging.error(str(e))
                         timestamp = messages["timestamp"]
+                        logging.error("****** after timestamp mjson ******")
+                        logging.error(messages)
                         message_type = messages["type"]
                         sender = messages["from"]
                         sender_message = messages["text"]["body"]
