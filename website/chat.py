@@ -53,7 +53,22 @@ def deleteAll():
     db.session.commit()
     db.session.query(Conversation).delete()
     db.session.commit()
-    return True
+    return 200
+    #return get_userinfo('9366570293413211')
+
+#@chat.route('/userinfo', methods=['GET'])
+def get_userinfo(pSID):
+    response = requests.get('https://graph.facebook.com/v16.0/'+ pSID + '?access_token=' + fb_access_token)
+    if response.status_code == 200:
+        data = json.loads(response.text)
+        print(data)
+        return data
+    else:
+        data = {
+            'last_name': pSID,
+            "first_name": ""
+        }
+        return data
 
 # facebook messenger webhook
 @chat.route('/webhook', methods=['GET'])
@@ -83,11 +98,13 @@ def webhook_action():
 
                         conv=Conversation.query.filter_by(conv_id=sender_id).first()
                         if conv is None:
-                            new_conv = Conversation(name=sender_id, conv_id = sender_id, type="fb")
+                            user = get_userinfo(sender_id)
+                            user_name = user["first_name"] + " " +  user["last_name"]
+                            new_conv = Conversation(name=user_name, conv_id = sender_id, type="fb")
                             db.session.add(new_conv)
                             db.session.commit()
 
-                            member = Member(name=sender_id, mobile_phone = sender_id, Conversation_id=new_conv.id)
+                            member = Member(name=user_name, mobile_phone = sender_id, Conversation_id=new_conv.id)
                             db.session.add(member)
                             logging.info("****** member mjson ******")
                             logging.info(member)

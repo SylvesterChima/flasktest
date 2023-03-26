@@ -6,6 +6,7 @@ var baseUri = "http://troologdemo.azurewebsites.net";
           conversations: [],
           conversation: {},
           messages: [],
+          recentMessages: [],
           newMessage: {
             recipient: "",
             type: "",
@@ -64,6 +65,25 @@ var baseUri = "http://troologdemo.azurewebsites.net";
               });
           }
         },
+        GetRecentMessages(){
+					const _this = this;
+          axios.get(baseUri + '/recentmessages/' + this.conversation.id)
+            .then(function (response) {
+              _this.recentMessages = response.data;
+              _this.recentMessages.forEach(function (part, index){
+                msg = _this.messages.filter(message => message.id == part.id);
+                if(msg.length == 0){
+                  _this.messages.push(part)
+                }
+              });
+            })
+            .catch(function (error) {
+              console.log(error);
+            })
+            .finally(function () {
+              // always executed
+            });
+        },
         SendMessage(newMessage){
           const _this = this;
           console.log(newMessage);
@@ -77,8 +97,7 @@ var baseUri = "http://troologdemo.azurewebsites.net";
               memberId: newMessage.memberId
             })
             .then(function (response) {
-              console.log("*******55555****");
-              console.log(response.data);
+              _this.newMessage.message = "";
               _this.messages.push(response.data)
             })
             .catch(function (error) {
@@ -88,6 +107,7 @@ var baseUri = "http://troologdemo.azurewebsites.net";
         }
       },
       mounted() {
-        this.GetConversations()
+        this.GetConversations(),
+        setInterval(this.GetRecentMessages, 4000)
       }
     }).mount('#app')
