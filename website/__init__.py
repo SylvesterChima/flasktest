@@ -17,7 +17,8 @@ db = SQLAlchemy()
 #facebook_bp = None
 uri = urllib.parse.quote_plus("Driver=ODBC+Driver+18+for+SQL+Server;Server=tcp:troologserver.database.windows.net,1433;Database=troologdata;Uid=troolog;Pwd=@Admin12;Encrypt=yes;TrustServerCertificate=no;Connection Timeout=30;")
 UPLOAD_FOLDER = 'website/static/uploads/'
-ENV = 'prod'
+
+ENV = os.getenv("STAGE")
 def create_app():
     app = Flask(__name__)
     logging.basicConfig(level=logging.INFO, format=f'%(asctime)s %(levelname)s %(name)s : %(message)s')
@@ -27,6 +28,7 @@ def create_app():
     app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024
     app.config["FACEBOOK_OAUTH_CLIENT_ID"] = os.getenv("FACEBOOK_OAUTH_CLIENT_ID")
     app.config["FACEBOOK_OAUTH_CLIENT_SECRET"] = os.getenv("FACEBOOK_OAUTH_CLIENT_SECRET")
+    app.config["OAUTHLIB_INSECURE_TRANSPORT"] = "true"
     if ENV == 'dev':
         app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql://postgres:admin@localhost/demodata'
         #app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///market.db'
@@ -51,7 +53,7 @@ def create_app():
     app.register_blueprint(auth)
     app.register_blueprint(chat)
 
-    facebook_bp = make_facebook_blueprint(scope="email", redirect_to="views.fbconfiguration")
+    facebook_bp = make_facebook_blueprint()
     app.register_blueprint(facebook_bp)
 
     from .models import User
