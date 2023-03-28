@@ -17,7 +17,6 @@ db = SQLAlchemy()
 #facebook_bp = None
 uri = urllib.parse.quote_plus("Driver=ODBC+Driver+18+for+SQL+Server;Server=tcp:troologserver.database.windows.net,1433;Database=troologdata;Uid=troolog;Pwd=@Admin12;Encrypt=yes;TrustServerCertificate=no;Connection Timeout=30;")
 UPLOAD_FOLDER = 'website/static/uploads/'
-
 ENV = os.getenv("STAGE")
 def create_app():
     app = Flask(__name__)
@@ -53,7 +52,7 @@ def create_app():
     app.register_blueprint(auth)
     app.register_blueprint(chat)
 
-    facebook_bp = make_facebook_blueprint()
+    facebook_bp = make_facebook_blueprint(redirect_to="views.fbconfiguration")
     app.register_blueprint(facebook_bp)
 
     from .models import User
