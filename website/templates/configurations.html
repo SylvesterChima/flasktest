@@ -120,34 +120,36 @@
             console.log('statusChangeCallback');
             console.log(response);                   // The current login status of the person.
             if (response.status === 'connected') {   // Logged into your webpage and Facebook.
-              testAPI();  
+              testAPI();
             } else {                                 // Not logged into your webpage or we are unable to tell.
               document.getElementById('status').innerHTML = 'Please log ' +
                 'into this webpage.';
             }
           }
-        
-        
+
+
           function checkLoginState() {               // Called when a person is finished with the Login Button.
             FB.getLoginStatus(function(response) {   // See the onlogin handler
               statusChangeCallback(response);
             });
           }
-    
-    
+
+
         window.fbAsyncInit = function() {
           FB.init({
-            appId      : '976859583484106',
+            appId      : '1565961207239611',
             cookie     : true,
             xfbml      : true,
             version    : 'v16.0'
           });
+
           FB.getLoginStatus(function(response) {   // Called after the JS SDK has been initialized.
             statusChangeCallback(response);        // Returns the login status.
           });
           //FB.AppEvents.logPageView();
         };
-    
+
+
         function testAPI() {                      // Testing Graph API after login.  See statusChangeCallback() for when this call is made.
             console.log('Welcome!  Fetching your information.... ');
             FB.api('/me', function(response) {
@@ -158,18 +160,20 @@
         }
 
         function login(){
-            FB.login(function(response) {
-                if (response.status === 'connected') {
-                    console.log('Successful login for: ' + response);
-                  } else {
-                    console.log('error login for: ' + response);
-                  }
-            }, {scope: 'public_profile,email'});
+            FB.login(
+                function(response) {
+                    statusChangeCallback();
+                },
+                {
+                    config_id: '188936620679912', // configuration ID goes here
+                    auth_type: 'code'   // must be set to 'code' for SUAT
+                }
+            );
         }
       </script>
     <div id="status">
     </div>
-    
+
     <!-- Load the JS SDK asynchronously -->
     <script async defer crossorigin="anonymous" src="https://connect.facebook.net/en_US/sdk.js"></script>
 </section>
