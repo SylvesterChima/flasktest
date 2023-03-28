@@ -129,7 +129,6 @@ def configurations():
     configs = CompanyConfig.query.filter_by(company_id = user.company_id).all()
     return render_template('configurations.html', configs=configs)
 
-
 @views.route('/wpconfiguration', methods=['GET', 'POST'])
 @login_required
 def wpconfiguration():
@@ -148,7 +147,6 @@ def wpconfiguration():
         db.session.add(config)
         db.session.commit()
         return redirect(url_for('views.configurations'))
-
 
 @views.route('/fbconfiguration', methods=['GET'])
 def fbconfiguration():

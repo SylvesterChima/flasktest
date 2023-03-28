@@ -52,8 +52,8 @@ def create_app():
     app.register_blueprint(auth)
     app.register_blueprint(chat)
 
-    facebook_bp = make_facebook_blueprint(redirect_to="views.fbconfiguration")
-    app.register_blueprint(facebook_bp)
+    facebook_bp = make_facebook_blueprint()
+    app.register_blueprint(facebook_bp, url_prefix="/fbconfiguration")
 
     from .models import User
 
