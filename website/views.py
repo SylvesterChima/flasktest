@@ -1,7 +1,7 @@
 from __future__ import print_function
 import uuid
 from flask import Blueprint,redirect,url_for,render_template,session,request,flash,current_app,jsonify,Response
-from flask_dance.contrib.facebook import make_facebook_blueprint, facebook
+from flask_dance.contrib.facebook import facebook
 import datetime
 import requests
 import os.path
