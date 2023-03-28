@@ -27,7 +27,7 @@ def create_app():
     app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024
     app.config["FACEBOOK_OAUTH_CLIENT_ID"] = os.getenv("FACEBOOK_OAUTH_CLIENT_ID")
     app.config["FACEBOOK_OAUTH_CLIENT_SECRET"] = os.getenv("FACEBOOK_OAUTH_CLIENT_SECRET")
-    app.config["OAUTHLIB_INSECURE_TRANSPORT"] = "true"
+    #app.config["OAUTHLIB_INSECURE_TRANSPORT"] = "true"
     if ENV == 'dev':
         app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql://postgres:admin@localhost/demodata'
         #app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///market.db'
