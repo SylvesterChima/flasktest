@@ -456,5 +456,4 @@ def chatapp():
 
 
 def wp_handle_message(user_id, user_message):
-    # DO SOMETHING with the user_message ... ¯\_(ツ)_/¯
     return "Hello "+user_id+" ! You just sent me : " + user_message
