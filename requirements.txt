@@ -19,3 +19,4 @@ flask-googlemaps
 python-dotenv
 pyodbc
 flask-cors
+Flask-Dance

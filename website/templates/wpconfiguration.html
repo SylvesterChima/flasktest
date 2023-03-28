@@ -1,0 +1,94 @@
+{% extends "user_layout.html" %} {% block style %}
+<style></style>
+{% endblock %} {% block content %}
+
+<div class="row">
+  <div class="col">
+    <form action="/wpconfiguration" method="post">
+      <div class="accordion accordion-flush" id="accordionFlushExample">
+        <div class="accordion-item">
+          <h2 class="accordion-header">
+            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse"
+              data-bs-target="#flush-collapseOne" aria-expanded="false" aria-controls="flush-collapseOne">
+              1. Create Meta App
+            </button>
+          </h2>
+          <div id="flush-collapseOne" class="accordion-collapse collapse show" data-bs-parent="#accordionFlushExample">
+            <div class="accordion-body">
+              <p>
+                Go to
+                <a href="https://developers.facebook.com/" target="_blank">https://developers.facebook.com/</a>
+                > My Apps > Create App.
+              </p>
+              <p>
+                Scroll down to the WhatsApp product and click Set up and follow the steps
+              </p>
+            </div>
+          </div>
+        </div>
+        <div class="accordion-item">
+          <h2 class="accordion-header">
+            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse"
+              data-bs-target="#flush-collapseTwo" aria-expanded="false" aria-controls="flush-collapseTwo">
+              2. Add a Phone Number
+            </button>
+          </h2>
+          <div id="flush-collapseTwo" class="accordion-collapse collapse" data-bs-parent="#accordionFlushExample">
+            <div class="accordion-body">
+              <p>Enter the phone number used to setup WhatsApp</p>
+              <input class="form-control form-control-lg" name="Phone" type="text" placeholder="Phone number"
+                aria-label=".form-control-lg example" />
+            </div>
+          </div>
+        </div>
+        <div class="accordion-item">
+          <h2 class="accordion-header">
+            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse"
+              data-bs-target="#flush-collapseThree" aria-expanded="false" aria-controls="flush-collapseThree">
+              3. Generate permanent access token
+            </button>
+          </h2>
+          <div id="flush-collapseThree" class="accordion-collapse collapse" data-bs-parent="#accordionFlushExample">
+            <div class="accordion-body">
+              <p>
+                Go to:
+                <a  target="_blank"
+                  href="https://business.facebook.com/settings/system-users">https://business.facebook.com/settings/system-users</a>
+                and generate permanent access token and paste it below
+              </p>
+              <textarea placeholder="access token" class="form-control" name="AccessToken" id="exampleFormControlTextarea1" rows="3"></textarea>
+            </div>
+          </div>
+        </div>
+        <div class="accordion-item">
+          <h2 class="accordion-header">
+            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse"
+              data-bs-target="#flush-collapseFour" aria-expanded="false" aria-controls="flush-collapseFour">
+              4. Link your WhatsApp business with Troolog
+            </button>
+          </h2>
+          <div id="flush-collapseFour" class="accordion-collapse collapse" data-bs-parent="#accordionFlushExample">
+            <div class="accordion-body">
+              <p>Copy and paste below</p>
+              <input type="hidden" name="Type" value="wp">
+              <input class="form-control form-control-lg" type="text" name="AppId" placeholder="App ID"
+                aria-label=".form-control-lg example" />
+              <input class="form-control form-control-lg" type="text" name="PhoneId" placeholder="Phone Number ID"
+                aria-label=".form-control-lg example" />
+              <input class="form-control form-control-lg" type="text" name="WPAId" placeholder="WhatsApp Business Account ID"
+                aria-label=".form-control-lg example" />
+              <br>
+              <p>setup the webhook with the following:</p>
+              <p>Webhook callback: <a href="https://troologdemo.azurewebsites.net/whatsapp/webhook">https://troologdemo.azurewebsites.net/whatsapp/webhook</a></p>
+              <p>Verify Token: <b>troolog_test</b></p>
+                <button type="submit" class="btn btn-primary btn-lg">Save Changes</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </form>
+  </div>
+  <div class="col"></div>
+</div>
+
+{% endblock %}

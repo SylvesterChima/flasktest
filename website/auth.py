@@ -1,6 +1,6 @@
 import pathlib
 from  flask import Blueprint,redirect,url_for,render_template,request,flash,session,abort,current_app,jsonify
-from .models import User
+from .models import User, Company
 from werkzeug.security import generate_password_hash, check_password_hash
 from . import db
 from flask_login import login_user, login_required, logout_user, current_user
@@ -188,7 +188,8 @@ def login():
         return render_template('login.html')
     except Exception as error:
         current_app.logger.exception(error)
-        return 'something went wrong'
+        flash(str(error), category='error')
+        return render_template('login.html')
 
 
 @auth.route('/logout')
@@ -209,6 +210,8 @@ def signup():
     if request.method == 'GET':
         return render_template('signup.html')
     else:
+        business_name = request.form.get('BusinessName')
+        website = request.form.get('Website')
         email = request.form.get('Email')
         first_name = request.form.get('FirstName')
         last_name = request.form.get('LastName')
@@ -227,7 +230,10 @@ def signup():
         elif len(password1) < 7:
             flash('Password must be at least 7 characters.', category='error')
         else:
-            new_user = User(email=email, first_name=first_name, last_name = last_name, profile_image='user.png', password=generate_password_hash(password1, method='sha256'))
+            company = Company(name=business_name, website=website)
+            db.session.add(company)
+            db.session.commit() 
+            new_user = User(email=email, first_name=first_name, last_name = last_name, profile_image='user.png', password=generate_password_hash(password1, method='sha256'), company_id = company.id)
             db.session.add(new_user)
             db.session.commit() 
             login_user(new_user, remember=True)

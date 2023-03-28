@@ -1,6 +1,7 @@
 from __future__ import print_function
 import uuid
 from flask import Blueprint,redirect,url_for,render_template,session,request,flash,current_app,jsonify,Response
+from flask_dance.contrib.facebook import make_facebook_blueprint, facebook
 import datetime
 import requests
 import os.path
@@ -14,12 +15,13 @@ from googleapiclient.discovery import build
 from googleapiclient.errors import HttpError
 from flask_login import login_user, login_required, logout_user, current_user
 from werkzeug.utils import secure_filename
-from .models import User
+from .models import User, CompanyConfig, Company
 from . import db
 import logging
 
 load_dotenv()
 views = Blueprint('views', __name__,)
+
 
 ### WSGI App
 SCOPES = ['https://www.googleapis.com/auth/calendar.readonly']
@@ -86,7 +88,7 @@ def api_profile():
     user = User.query.get(current_user.id)
     user.profile_image = filename
     db.session.commit()
-    return redirect(url_for('views.profile')) 
+    return redirect(url_for('views.profile'))
 
 @views.route('/events')
 @login_required
@@ -119,3 +121,39 @@ def events():
     except HttpError as error:
         print('An error occurred: %s' % error)
 
+
+@views.route('/configurations', methods=['GET'])
+@login_required
+def configurations():
+    user = User.query.get(current_user.id)
+    configs = CompanyConfig.query.filter_by(company_id = user.company_id).all()
+    return render_template('configurations.html', configs=configs)
+
+
+@views.route('/wpconfiguration', methods=['GET', 'POST'])
+@login_required
+def wpconfiguration():
+    if request.method == 'GET':
+        user = User.query.get(current_user.id)
+        return render_template('wpconfiguration.html')
+    else:
+        user = User.query.get(current_user.id)
+        access_token = request.form.get('AccessToken')
+        phone_id = request.form.get('PhoneId')
+        app_id = request.form.get('AppId')
+        wpa_id = request.form.get('WPAId')
+        type = request.form.get('Type')
+        phone = request.form.get('Phone')
+        config = CompanyConfig(access_token=access_token, phone=phone, phone_id=phone_id,app_id=app_id,wpa_id=wpa_id,type=type, company_id=user.company_id)
+        db.session.add(config)
+        db.session.commit()
+        return redirect(url_for('views.configurations'))
+
+
+@views.route('/fbconfiguration', methods=['GET'])
+def fbconfiguration():
+    if not facebook.authorized:
+        return redirect(url_for("facebook.login"))
+    resp = facebook.get("/me")
+    assert resp.ok, resp.text
+    return "You are {name} on Facebook".format(name=resp.json()["name"])

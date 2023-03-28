@@ -1,24 +1,32 @@
 from sched import scheduler
 from flask import Flask
+from flask_dance.contrib.facebook import make_facebook_blueprint, facebook
 from flask_sqlalchemy import SQLAlchemy
 from os import path
+import os
 from flask_login import LoginManager
 from flask_apscheduler import APScheduler
+from dotenv import load_dotenv
 import urllib
 import logging
 import pyodbc
 
+load_dotenv()
 scheduler = APScheduler()
 db = SQLAlchemy()
+#facebook_bp = None
 uri = urllib.parse.quote_plus("Driver=ODBC+Driver+18+for+SQL+Server;Server=tcp:troologserver.database.windows.net,1433;Database=troologdata;Uid=troolog;Pwd=@Admin12;Encrypt=yes;TrustServerCertificate=no;Connection Timeout=30;")
 UPLOAD_FOLDER = 'website/static/uploads/'
 ENV = 'prod'
 def create_app():
     app = Flask(__name__)
     logging.basicConfig(level=logging.INFO, format=f'%(asctime)s %(levelname)s %(name)s : %(message)s')
+    app.secret_key = os.getenv("FLASK_SECRET_KEY", "supersekrit")
     app.config['SECRET_KEY'] = 'hjhjhjhjhdhjhdhjhgsjkhdshds'
     app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
     app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024
+    app.config["FACEBOOK_OAUTH_CLIENT_ID"] = os.getenv("FACEBOOK_OAUTH_CLIENT_ID")
+    app.config["FACEBOOK_OAUTH_CLIENT_SECRET"] = os.getenv("FACEBOOK_OAUTH_CLIENT_SECRET")
     if ENV == 'dev':
         app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql://postgres:admin@localhost/demodata'
         #app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///market.db'
@@ -28,7 +36,7 @@ def create_app():
         app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql://vcoibczjbx:H2D8UYTZ582Z3OOU$@troologdemo-server.postgres.database.azure.com/troologdemo-database?sslmode=require'
 
     app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
-
+    facebook_bp = make_facebook_blueprint()
     #with app.app_context():
     #    db.init_app(app)
 
@@ -43,6 +51,7 @@ def create_app():
     app.register_blueprint(views, url_prfix='/')
     app.register_blueprint(auth, url_prfix='/')
     app.register_blueprint(chat, url_prfix='/')
+    app.register_blueprint(facebook_bp, url_prefix="/login")
 
     from .models import User
 

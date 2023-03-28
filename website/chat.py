@@ -1,5 +1,5 @@
 from flask import Blueprint,redirect,url_for,render_template,session,request,flash,current_app,jsonify,Response,make_response
-from .models import User, Conversation, Member, Message
+from .models import User, Conversation, Member, Message, Company, CompanyConfig
 from datetime import datetime
 import requests
 import os.path
@@ -53,7 +53,13 @@ def deleteAll():
     db.session.commit()
     db.session.query(Conversation).delete()
     db.session.commit()
-    return 200
+    db.session.query(CompanyConfig).delete()
+    db.session.commit()
+    db.session.query(User).delete()
+    db.session.commit()
+    db.session.query(Company).delete()
+    db.session.commit()
+    return redirect(url_for('chat.chatapp'))
     #return get_userinfo('9366570293413211')
 
 #@chat.route('/userinfo', methods=['GET'])
@@ -221,14 +227,6 @@ def wp_webhook_action():
                 conv_id = changes["value"]["metadata"]["phone_number_id"]
                 for messages in changes["value"]["messages"]:
                     message_id = messages["id"]
-                    logging.error("****** after id mjson ******")
-                    logging.error(messages)
-                    try:
-                        dt = changes["value"]["messages"][0]["timestamp"]
-                        logging.error("****** direct timestamp mjson ******")
-                        logging.error(dt)
-                    except Exception as e:
-                        logging.error(str(e))
                     timestamp = messages["timestamp"]
                     logging.error("****** after timestamp mjson ******")
                     logging.error(messages)
@@ -237,39 +235,23 @@ def wp_webhook_action():
                     sender_message = messages["text"]["body"]
                     datetime_obj = datetime.fromtimestamp(int(timestamp))
 
-                    conv=Conversation.query.filter_by(conv_id=conv_id).first()
-                    if conv is None:
-                        new_conv = Conversation(name=name, conv_id = conv_id, type="wp")
-                        db.session.add(new_conv)
-                        db.session.commit()
-
-                        member = Member(name=name, mobile_phone = sender, Conversation_id=new_conv.id)
-                        db.session.add(member)
-                        member = Member(name="Business", mobile_phone = "Business", Conversation_id=new_conv.id)
-                        db.session.add(member)
-                        db.session.commit()
-
-                        message = Message(message_id = message_id, message_type=message_type,sender=sender, sender_message=sender_message,timestamp=datetime_obj, Conversation_id=new_conv.id, Member_id=member.id)
-                        db.session.add(message)
-                        db.session.commit()
-                        json_data = {"messaging_product": "whatsapp","to": sender,"type": "template",
-                        "template": {
-                            "name": "hello_world",
-                            "language": {
-                                "code": "en_US"
-                            }
-                        }}
-                        response = requests.post('https://graph.facebook.com/v16.0/110958208603472/messages?access_token=' + wp_access_token, json=json_data)
-                    else:
-                        member = Member.query.filter(and_(Member.mobile_phone == sender, Member.Conversation_id==conv.id)).first()
-                        if member:
-                            message = Message(message_id = message_id, message_type=message_type,sender=sender, sender_message=sender_message,timestamp=datetime_obj, Conversation_id=conv.id, Member_id=member.id)
-                            db.session.add(message)
+                    config = CompanyConfig.query.filter_by(phone_id=conv_id).first()
+                    if config:
+                        conv=Conversation.query.filter_by(conv_id=conv_id).first()
+                        if conv is None:
+                            new_conv = Conversation(name=name, conv_id = conv_id, type="wp", company_id = config.company_id)
+                            db.session.add(new_conv)
                             db.session.commit()
 
-                        last_message = Message.query.filter(and_(Message.sender == sender, Message.Conversation_id==conv.id)).order_by(Message.id.desc()).first()
-                        hour_difference = (datetime.utcnow() - last_message.timestamp).total_seconds() / 3600
-                        if hour_difference >= 24:
+                            member = Member(name=name, mobile_phone = sender, Conversation_id=new_conv.id)
+                            db.session.add(member)
+                            member = Member(name="Business", mobile_phone = "Business", Conversation_id=new_conv.id)
+                            db.session.add(member)
+                            db.session.commit()
+
+                            message = Message(message_id = message_id, message_type=message_type,sender=sender, sender_message=sender_message,timestamp=datetime_obj, Conversation_id=new_conv.id, Member_id=member.id)
+                            db.session.add(message)
+                            db.session.commit()
                             json_data = {"messaging_product": "whatsapp","to": sender,"type": "template",
                             "template": {
                                 "name": "hello_world",
@@ -277,16 +259,35 @@ def wp_webhook_action():
                                     "code": "en_US"
                                 }
                             }}
-                            response = requests.post('https://graph.facebook.com/v16.0/110958208603472/messages?access_token=' + wp_access_token, json=json_data)
+                            response = requests.post('https://graph.facebook.com/v16.0/'+ config.phone_id +'/messages?access_token=' + config.access_token, json=json_data)
+                        else:
+                            member = Member.query.filter(and_(Member.mobile_phone == sender, Member.Conversation_id==conv.id)).first()
+                            if member:
+                                message = Message(message_id = message_id, message_type=message_type,sender=sender, sender_message=sender_message,timestamp=datetime_obj, Conversation_id=conv.id, Member_id=member.id)
+                                db.session.add(message)
+                                db.session.commit()
+
+                            last_message = Message.query.filter(and_(Message.sender == sender, Message.Conversation_id==conv.id)).order_by(Message.id.desc()).first()
+                            hour_difference = (datetime.utcnow() - last_message.timestamp).total_seconds() / 3600
+                            if hour_difference >= 24:
+                                json_data = {"messaging_product": "whatsapp","to": sender,"type": "template",
+                                "template": {
+                                    "name": "hello_world",
+                                    "language": {
+                                        "code": "en_US"
+                                    }
+                                }}
+                                response = requests.post('https://graph.facebook.com/v16.0/'+ config.phone_id +'/messages?access_token=' + config.access_token, json=json_data)
 
     return Response(response="EVENT RECEIVED",status=200)
 
 
-@chat.route('/conversations', methods=['GET'])
-def conversations():
+@chat.route('/conversations/<int:userId>', methods=['GET'])
+def conversations(userId):
     try:
         result = []
-        conversations = Conversation.query.all()
+        user = User.query.get(userId)
+        conversations = Conversation.query.filter_by(company_id=user.company_id)
         for con in conversations:
             members = []
             for mem in con.members:
@@ -452,9 +453,6 @@ def sendmessage():
 @chat.route('/chatapp', methods=['GET'])
 def chatapp():
     return render_template('chatapp.html', user=current_user)
-
-
-
 
 
 def wp_handle_message(user_id, user_message):
