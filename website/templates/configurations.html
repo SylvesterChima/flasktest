@@ -77,7 +77,7 @@
                     </div>
                 </div>
             </a>
-            <a class="col-lg-6 mbr-col-md-10" href="#" id="fblogin" onclick="checkLoginState()">
+            <a class="col-lg-6 mbr-col-md-10" href="#" id="fblogin" onclick="fbLogin()">
                 <div class="wrap">
                     <div class="ico-wrap">
                         <span class="mbr-iconfont fa-calendar-o far"></span>
@@ -131,6 +131,17 @@
             });
           }
 
+        function fbLogin() {
+            FB.login(function(response) {
+                    statusChangeCallback(response);
+                },
+                {
+                    config_id: '188936620679912', // configuration ID goes here
+                    auth_type: 'code'   // must be set to 'code' for SUAT
+                }
+            );
+        }
+
         (function(d, s, id){
            var js, fjs = d.getElementsByTagName(s)[0];
            if (d.getElementById(id)) {return;}
@@ -140,9 +151,6 @@
          }(document, 'script', 'facebook-jssdk'));
       </script>
 
-      <fb:login-button 
-      config_id="188936620679912"
-      onlogin="checkLoginState();">
-    </fb:login-button>
+      <fb:login-button config_id="188936620679912" onlogin="checkLoginState();"></fb:login-button>
 </section>
 {% endblock %}
