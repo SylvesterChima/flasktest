@@ -87,10 +87,11 @@ def webhook_verify():
 def webhook_action():
     try:
         mjson = request.get_json()
+        logging.info("****** fb mjson ******")
+        logging.info(mjson)
+        logging.info("****** end fb mjson ******")
         if is_message_notification(mjson):
-            logging.info("****** fb mjson ******")
-            logging.info(mjson)
-            logging.info("****** end fb mjson ******")
+
             for entry in mjson["entry"]:
                 for messaging_event in entry["messaging"]: #3shan ad5ol 3la list 
                     sender_id = messaging_event["sender"]["id"]
@@ -215,10 +216,11 @@ def wp_webhook_action():
     #     return Response(response=str(e),status=500)
 
     mjson = request.get_json()
+    logging.error("****** wp mjson ******")
+    logging.error(mjson)
+    logging.error("****** end wp mjson ******")
     if is_message_notification(mjson):
-        logging.error("****** wp mjson ******")
-        logging.error(mjson)
-        logging.error("****** end wp mjson ******")
+
         for entry in mjson["entry"]:
             for changes in entry["changes"]:
                 name = "user"
