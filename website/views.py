@@ -132,7 +132,7 @@ def configurations():
     configId = os.getenv('FACEBOOK_CONFIG_ID')
     user = User.query.get(current_user.id)
     configs = CompanyConfig.query.filter_by(company_id = user.company_id).all()
-    return render_template('configurations.html', configs=configs, configId=configId)
+    return render_template('configurations.html', configs=configs, configId=configId,userId=current_user.id )
 
 @views.route('/wpconfiguration', methods=['GET', 'POST'])
 @login_required

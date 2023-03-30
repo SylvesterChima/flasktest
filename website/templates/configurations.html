@@ -133,13 +133,14 @@
           }
 
         function fbLogin() {
+            console.log('{{userId}}')
+            console.log('{{configId}}')
             FB.login(function(response) {
                     console.log(response);
                     statusChangeCallback(response);
                 },
                 {
                     config_id: '{{configId}}'
-                    //auth_type: 'code'
                 }
             );
         }
@@ -148,7 +149,7 @@
         function statusChangeCallback(response) {  // Called with the results from FB.getLoginStatus().
             console.log('statusChangeCallback');
             console.log(response);                   // The current login status of the person.
-            if (response.status === 'connected') { 
+            if (response.status === 'connected') {
                   ConfigureApp();
             } else {                                 // Not logged into your webpage or we are unable to tell.
               document.getElementById('status').innerHTML = 'Please log ' +
@@ -158,13 +159,13 @@
 
         function ConfigureApp() {
             FB.api('/me/accounts','GET',{"fields":"name,access_token,id"},function(response) {
-                axios.post(baseUri + '/sendmessage', {
+                axios.post('https://troologdemo.azurewebsites.net/fbconfiguration', {
                     type: "fb",
                     userId: '{{userId}}',
                     data: response.data
                   })
                   .then(function (response) {
-                    console.log(error);
+                    console.log(response);
                   })
                   .catch(function (error) {
                     console.log(error);
