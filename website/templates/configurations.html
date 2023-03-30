@@ -135,19 +135,14 @@
         function fbLogin() {
             FB.getLoginStatus(function(response) {
                 console.log(response);
-                if (response.status === 'connected') {
-                    FB.logout(function(response) {
-                        console.log(response);
-                    });
-                } else {
+                if (response.status != 'connected') {
                     FB.login(function(response) {
                         console.log(response);
                         statusChangeCallback(response);
                     },
                     {
                         config_id: '{{configId}}'
-                    }
-                );
+                    });
                 }
             });
         }
@@ -192,20 +187,24 @@
       <!-- <fb:login-button config_id="188936620679912" onlogin="checkLoginState();"></fb:login-button> -->
 </section>
 
-<table class="table">
-    <tr>
-        <td>Type</td>
-        <td>Page ID</td>
-        <td>Phone ID</td>
-        <td>Page Name</td>
-    </tr>
+<table class="table table-success table-striped">
+    <thead>
+        <tr>
+          <th scope="col">Type</th>
+          <th scope="col">Page ID</th>
+          <th scope="col">Phone ID</th>
+          <th scope="col">Page Name</th>
+        </tr>
+      </thead>
     {% for item in configs %}
-        <li>
-            <td>{{ item.type }}</td>
-            <td>{{ item.page_id }}</td>
-            <td>{{ item.phone_id }}</td>
-            <td>{{ item.page_name }}</td>
-        </li>
+        <tbody>
+            <tr>
+                <td>{{ item.type }}</td>
+                <td>{{ item.page_id }}</td>
+                <td>{{ item.phone_id }}</td>
+                <td>{{ item.page_name }}</td>
+            </tr>
+        </tbody>
     {% endfor %}
 </table>
 
