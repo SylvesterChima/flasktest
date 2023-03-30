@@ -14,9 +14,7 @@ from . import db
 load_dotenv()
 chat = Blueprint('chat', __name__,)
 verify_token = os.getenv('VERIFY_TOKEN')
-fb_access_token = os.getenv('FB_ACCESS_TOKEN')
 insta_access_token = os.getenv('INSTA_ACCESS_TOKEN')
-wp_access_token = os.getenv('WP_ACCESS_TOKEN')
 
 def is_message_notification(data):
     try:
@@ -63,8 +61,8 @@ def deleteAll():
     #return get_userinfo('9366570293413211')
 
 #@chat.route('/userinfo', methods=['GET'])
-def get_userinfo(pSID):
-    response = requests.get('https://graph.facebook.com/v16.0/'+ pSID + '?access_token=' + fb_access_token)
+def get_userinfo(pSID, accessToken):
+    response = requests.get('https://graph.facebook.com/v16.0/'+ pSID + '?access_token=' + accessToken)
     if response.status_code == 200:
         data = json.loads(response.text)
         print(data)
@@ -93,7 +91,8 @@ def webhook_action():
         if is_message_notification(mjson):
 
             for entry in mjson["entry"]:
-                for messaging_event in entry["messaging"]: #3shan ad5ol 3la list 
+                page_id = entry["id"]
+                for messaging_event in entry["messaging"]:
                     sender_id = messaging_event["sender"]["id"]
                     recipient_id = messaging_event["recipient"]["id"] #bgeb mn eldict elrecipient key
                     timestamp = messaging_event["timestamp"]
@@ -102,59 +101,60 @@ def webhook_action():
                     if "text" in messaging_event["message"]: #key:text 
                         message_id = messaging_event["message"]["mid"]
                         sender_message = messaging_event["message"]["text"] # message text ="hello there"
-
-                        conv=Conversation.query.filter_by(conv_id=sender_id).first()
-                        if conv is None:
-                            user = get_userinfo(sender_id)
-                            user_name = user["first_name"] + " " +  user["last_name"]
-                            new_conv = Conversation(name=user_name, conv_id = sender_id, type="fb")
-                            db.session.add(new_conv)
-                            db.session.commit()
-
-                            member = Member(name=user_name, mobile_phone = sender_id, Conversation_id=new_conv.id)
-                            db.session.add(member)
-                            logging.info("****** member mjson ******")
-                            logging.info(member)
-                            member = Member(name="Business", mobile_phone = "Business", Conversation_id=new_conv.id)
-                            db.session.add(member)
-                            logging.info("****** member2 mjson ******")
-                            logging.info(member)
-                            db.session.commit()
-                            logging.info("****** commit mjson ******")
-                            logging.info(member)
-
-                            message = Message(message_id = message_id, message_type="text",sender=sender_id, sender_message=sender_message,timestamp=datetime_obj, Conversation_id=new_conv.id, Member_id=member.id)
-                            db.session.add(message)
-                            db.session.commit()
-                            logging.info("****** message mjson ******")
-                            logging.info(member)
-                            response = {
-                                'recipient': {'id': sender_id},
-                                "messaging_type": "RESPONSE",
-                                "message":{
-                                    "text": fb_handle_message(sender_id, sender_message)
-                                }
-                            }
-                            r = requests.post('https://graph.facebook.com/v16.0/108409538867050/messages/?access_token=' + fb_access_token, json=response)
-                        else:
-                            member = Member.query.filter(and_(Member.mobile_phone == sender_id, Member.Conversation_id==conv.id)).first()
-                            if member:
-                                message = Message(message_id = message_id, message_type="text",sender=sender_id, sender_message=sender_message,timestamp=datetime_obj, Conversation_id=conv.id, Member_id=member.id)
-                                db.session.add(message)
+                        config = CompanyConfig.query.filter_by(page_id=page_id).first()
+                        if config:
+                            conv=Conversation.query.filter_by(conv_id=sender_id).first()
+                            if conv is None:
+                                user = get_userinfo(sender_id, config.access_token)
+                                user_name = user["first_name"] + " " +  user["last_name"]
+                                new_conv = Conversation(name=user_name, conv_id = sender_id, page_id = page_id, type="fb", company_id= config.company_id)
+                                db.session.add(new_conv)
                                 db.session.commit()
 
-                            last_message = Message.query.filter(and_(Message.sender == sender_id, Message.Conversation_id==conv.id)).order_by(Message.id.desc()).first()
-                            if last_message:
-                                hour_difference = (datetime.utcnow() - last_message.timestamp).total_seconds() / 3600
-                                if hour_difference >= 24:
-                                    response = {
-                                        'recipient': {'id': sender_id},
-                                        "messaging_type": "RESPONSE",
-                                        "message":{
-                                            "text": fb_handle_message(sender_id, sender_message)
-                                        }
+                                member = Member(name=user_name, mobile_phone = sender_id, Conversation_id=new_conv.id)
+                                db.session.add(member)
+                                logging.info("****** member mjson ******")
+                                logging.info(member)
+                                member = Member(name="Business", mobile_phone = "Business", Conversation_id=new_conv.id)
+                                db.session.add(member)
+                                logging.info("****** member2 mjson ******")
+                                logging.info(member)
+                                db.session.commit()
+                                logging.info("****** commit mjson ******")
+                                logging.info(member)
+
+                                message = Message(message_id = message_id, message_type="text",sender=sender_id, sender_message=sender_message,timestamp=datetime_obj, Conversation_id=new_conv.id, Member_id=member.id)
+                                db.session.add(message)
+                                db.session.commit()
+                                logging.info("****** message mjson ******")
+                                logging.info(member)
+                                response = {
+                                    'recipient': {'id': sender_id},
+                                    "messaging_type": "RESPONSE",
+                                    "message":{
+                                        "text": fb_handle_message(sender_id, sender_message)
                                     }
-                                    r = requests.post('https://graph.facebook.com/v16.0/108409538867050/messages/?access_token=' + fb_access_token, json=response)
+                                }
+                                r = requests.post('https://graph.facebook.com/v16.0/'+ page_id +'/messages/?access_token=' + config.access_token, json=response)
+                            else:
+                                member = Member.query.filter(and_(Member.mobile_phone == sender_id, Member.Conversation_id==conv.id)).first()
+                                if member:
+                                    message = Message(message_id = message_id, message_type="text",sender=sender_id, sender_message=sender_message,timestamp=datetime_obj, Conversation_id=conv.id, Member_id=member.id)
+                                    db.session.add(message)
+                                    db.session.commit()
+
+                                last_message = Message.query.filter(and_(Message.sender == sender_id, Message.Conversation_id==conv.id)).order_by(Message.id.desc()).first()
+                                if last_message:
+                                    hour_difference = (datetime.utcnow() - last_message.timestamp).total_seconds() / 3600
+                                    if hour_difference >= 24:
+                                        response = {
+                                            'recipient': {'id': sender_id},
+                                            "messaging_type": "RESPONSE",
+                                            "message":{
+                                                "text": fb_handle_message(sender_id, sender_message)
+                                            }
+                                        }
+                                        r = requests.post('https://graph.facebook.com/v16.0/'+ page_id +'/messages/?access_token=' + config.access_token, json=response)
 
         return Response(response="EVENT RECEIVED",status=200)
     except Exception as e:
@@ -190,7 +190,7 @@ def insta_webhook_action():
                 }
             }
             response['message']['text'] = insta_handle_message(user_id, user_message)
-            r = requests.post('https://graph.facebook.com/v16.0/100323863013649/messages/?access_token=' + insta_access_token, json=response)
+            r = requests.post('https://graph.facebook.com/v16.0/me/messages/?access_token=' + insta_access_token, json=response)
         return Response(response="EVENT RECEIVED",status=200)
     except Exception as e:
         logging.error(str(e))
@@ -241,7 +241,7 @@ def wp_webhook_action():
                     if config:
                         conv=Conversation.query.filter_by(conv_id=conv_id).first()
                         if conv is None:
-                            new_conv = Conversation(name=name, conv_id = conv_id, type="wp", company_id = config.company_id)
+                            new_conv = Conversation(name=name, conv_id = conv_id, page_id=conv_id, type="wp", company_id = config.company_id)
                             db.session.add(new_conv)
                             db.session.commit()
 
@@ -369,6 +369,7 @@ def sendmessage():
         data = request.get_json()
         type = data['type']
         conversationId = data['conversationId']
+        page_id = data['pageId']
         memberId = data['memberId']
         message = data['message']
         recipient = data['recipient']
@@ -385,7 +386,8 @@ def sendmessage():
             }
             logging.info(msg)
             timestamp = datetime.utcnow()
-            response = requests.post('https://graph.facebook.com/v16.0/110958208603472/messages?access_token=' + wp_access_token, json=msg)
+            config = CompanyConfig.query.filter_by(phone_id=page_id).first()
+            response = requests.post('https://graph.facebook.com/v16.0/' + config.phone_id + '/messages?access_token=' + config.access_token, json=msg)
             if response.status_code == 200:
                 data = json.loads(response.text)
                 message_id = data["messages"][0]["id"]
@@ -419,7 +421,8 @@ def sendmessage():
             }
             logging.info(msg)
             timestamp = datetime.utcnow()
-            response = requests.post('https://graph.facebook.com/v16.0/108409538867050/messages/?access_token=' + fb_access_token, json=msg)
+            config = CompanyConfig.query.filter_by(page_id=page_id).first()
+            response = requests.post('https://graph.facebook.com/v16.0/'+ config.page_id +'/messages/?access_token=' + config.access_token, json=msg)
             if response.status_code == 200:
                 data = json.loads(response.text)
                 message_id = data["message_id"]

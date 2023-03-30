@@ -12,7 +12,9 @@ var baseUri = "http://troologdemo.azurewebsites.net";
             type: "",
             conversationId: "",
             memberId: "",
-            message: ""
+            message: "",
+            phoneId: "",
+            pageId: ""
           }
         }
       },
@@ -54,6 +56,7 @@ var baseUri = "http://troologdemo.azurewebsites.net";
                 _this.newMessage.conversationId = conv.id;
                 _this.newMessage.type = conv.type;
                 _this.newMessage.message = "";
+                _this.newMessage.pageId = conv.page_id
               })
               .catch(function (error) {
                 // handle error

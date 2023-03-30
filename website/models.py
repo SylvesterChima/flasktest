@@ -28,6 +28,8 @@ class User(db.Model, UserMixin):
 class CompanyConfig(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     type = db.Column(db.String(50))
+    page_id= db.Column(db.String())
+    page_name= db.Column(db.String())
     phone = db.Column(db.String(15))
     phone_id = db.Column(db.String())
     app_id = db.Column(db.String())
@@ -40,6 +42,7 @@ class Conversation(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String())
     conv_id = db.Column(db.String(200))
+    page_id = db.Column(db.String(200))
     type = db.Column(db.String(50))
     date_created = db.Column(db.DateTime, default=datetime.utcnow)
     company_id = db.Column(db.Integer, db.ForeignKey('company.id'),nullable=False)

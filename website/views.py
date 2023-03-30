@@ -1,6 +1,6 @@
 from __future__ import print_function
 import uuid
-from flask import Blueprint,redirect,url_for,render_template,session,request,flash,current_app,jsonify,Response
+from flask import Blueprint,redirect,url_for,render_template,session,request,flash,current_app,jsonify,Response,make_response
 from flask_dance.contrib.facebook import facebook
 import datetime
 import requests
@@ -59,6 +59,10 @@ def feedback():
 @login_required
 def dashboard():
     return render_template('dashboard.html')
+
+@views.route('/privacy')
+def privacy():
+    return render_template('privacy.html')
 
 @views.route('/profile', methods=['GET', 'POST'])
 @login_required
@@ -125,9 +129,10 @@ def events():
 @views.route('/configurations', methods=['GET'])
 @login_required
 def configurations():
+    configId = os.getenv('FACEBOOK_CONFIG_ID')
     user = User.query.get(current_user.id)
     configs = CompanyConfig.query.filter_by(company_id = user.company_id).all()
-    return render_template('configurations.html', configs=configs)
+    return render_template('configurations.html', configs=configs, configId=configId)
 
 @views.route('/wpconfiguration', methods=['GET', 'POST'])
 @login_required
@@ -148,10 +153,28 @@ def wpconfiguration():
         db.session.commit()
         return redirect(url_for('views.configurations'))
 
-@views.route('/fbconfiguration', methods=['GET'])
+@views.route('/fbconfiguration', methods=['POST'])
 def fbconfiguration():
-    if not facebook.authorized:
-        return redirect(url_for("facebook.login"))
-    resp = facebook.get("/me")
-    assert resp.ok, resp.text
-    return "You are {name} on Facebook".format(name=resp.json()["name"])
+    data = request.get_json()
+    userId = data['userId']
+    user = User.query.get(userId)
+    pages = data['data']
+    type = data['type']
+    for page in pages:
+        config = CompanyConfig(access_token=page['access_token'], page_id=page['id'],type=type, page_name=page['name'], company_id=user.company_id)
+        db.session.add(config)
+        db.session.commit()
+    new_obj = {
+        'message': "Added successful"
+    }
+    resp = make_response(new_obj)
+    resp.status_code = 200
+    return resp
+
+# @views.route('/fbconfiguration', methods=['GET'])
+# def fbconfiguration():
+#     if not facebook.authorized:
+#         return redirect(url_for("facebook.login"))
+#     resp = facebook.get("/me")
+#     assert resp.ok, resp.text
+#     return "You are {name} on Facebook".format(name=resp.json()["name"])
