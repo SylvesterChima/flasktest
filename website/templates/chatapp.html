@@ -170,16 +170,19 @@
           console.log(newMessage);
           if(newMessage.message != ""){
             console.log(newMessage);
+            const msg = newMessage.message;
+            _this.newMessage.message = "";
             axios.post(baseUri + '/sendmessage', {
               type: newMessage.type,
-              message: newMessage.message,
+              message: msg,
               recipient: newMessage.recipient,
               conversationId: newMessage.conversationId,
-              memberId: newMessage.memberId
+              memberId: newMessage.memberId,
+              pageId: newMessage.pageId
             })
             .then(function (response) {
               _this.newMessage.message = "";
-              _this.messages.push(response.data)
+              _this.messages.push(response.data);
             })
             .catch(function (error) {
               console.log(error);
