@@ -135,14 +135,19 @@
         function fbLogin() {
             FB.getLoginStatus(function(response) {
                 console.log(response);
-                if (response.status != 'connected') {
+                if (response.status === 'connected') {
+                    FB.logout(function(response) {
+                        console.log(response);
+                    });
+                } else {
                     FB.login(function(response) {
                         console.log(response);
                         statusChangeCallback(response);
                     },
                     {
                         config_id: '{{configId}}'
-                    });
+                    }
+                );
                 }
             });
         }
