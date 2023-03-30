@@ -58,9 +58,7 @@ def deleteAll():
     # db.session.query(Company).delete()
     # db.session.commit()
     return redirect(url_for('chat.chatapp'))
-    #return get_userinfo('9366570293413211')
 
-#@chat.route('/userinfo', methods=['GET'])
 def get_userinfo(pSID, accessToken):
     response = requests.get('https://graph.facebook.com/v16.0/'+ pSID + '?access_token=' + accessToken)
     if response.status_code == 200:
@@ -163,7 +161,7 @@ def webhook_action():
 
 def fb_handle_message(user_id, user_message):
     # DO SOMETHING with the user_message ... ¯\_(ツ)_/¯
-    return "Hi, how can I help you?"
+    return "Hello, how can I help you?"
 
 # inatagram messenger webhook
 @chat.route('/instagram/webhook', methods=['GET'])
