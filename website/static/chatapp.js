@@ -1,4 +1,4 @@
-var baseUri = "http://troologdemo.azurewebsites.net";
+var baseUri = "https://troologdemo.azurewebsites.net";
   const { createApp } = Vue
     createApp({
       data() {
