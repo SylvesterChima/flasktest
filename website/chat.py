@@ -45,18 +45,18 @@ def is_message_notification(data):
 
 @chat.route('/deleteall', methods=['GET'])
 def deleteAll():
-    db.session.query(Message).delete()
-    db.session.commit()
-    db.session.query(Member).delete()
-    db.session.commit()
-    db.session.query(Conversation).delete()
-    db.session.commit()
+    # db.session.query(Message).delete()
+    # db.session.commit()
+    # db.session.query(Member).delete()
+    # db.session.commit()
+    # db.session.query(Conversation).delete()
+    # db.session.commit()
     db.session.query(CompanyConfig).delete()
     db.session.commit()
-    db.session.query(User).delete()
-    db.session.commit()
-    db.session.query(Company).delete()
-    db.session.commit()
+    # db.session.query(User).delete()
+    # db.session.commit()
+    # db.session.query(Company).delete()
+    # db.session.commit()
     return redirect(url_for('chat.chatapp'))
     #return get_userinfo('9366570293413211')
 
@@ -101,7 +101,7 @@ def webhook_action():
                     if "text" in messaging_event["message"]: #key:text 
                         message_id = messaging_event["message"]["mid"]
                         sender_message = messaging_event["message"]["text"] # message text ="hello there"
-                        config = CompanyConfig.query.filter_by(page_id=page_id).first()
+                        config = CompanyConfig.query.filter_by(page_id=page_id).order_by(CompanyConfig.id.desc()).first()
                         if config:
                             conv=Conversation.query.filter_by(conv_id=sender_id).first()
                             if conv is None:
@@ -237,7 +237,7 @@ def wp_webhook_action():
                     sender_message = messages["text"]["body"]
                     datetime_obj = datetime.fromtimestamp(int(timestamp))
 
-                    config = CompanyConfig.query.filter_by(phone_id=conv_id).first()
+                    config = CompanyConfig.query.filter_by(phone_id=conv_id).order_by(CompanyConfig.id.desc()).first()
                     if config:
                         conv=Conversation.query.filter_by(conv_id=conv_id).first()
                         if conv is None:
@@ -386,7 +386,7 @@ def sendmessage():
             }
             logging.info(msg)
             timestamp = datetime.utcnow()
-            config = CompanyConfig.query.filter_by(phone_id=page_id).first()
+            config = CompanyConfig.query.filter_by(phone_id=page_id).order_by(CompanyConfig.id.desc()).first()
             response = requests.post('https://graph.facebook.com/v16.0/' + config.phone_id + '/messages?access_token=' + config.access_token, json=msg)
             if response.status_code == 200:
                 data = json.loads(response.text)
@@ -421,7 +421,7 @@ def sendmessage():
             }
             logging.info(msg)
             timestamp = datetime.utcnow()
-            config = CompanyConfig.query.filter_by(page_id=page_id).first()
+            config = CompanyConfig.query.filter_by(page_id=page_id).order_by(CompanyConfig.id.desc()).first()
             response = requests.post('https://graph.facebook.com/v16.0/'+ config.page_id +'/messages/?access_token=' + config.access_token, json=msg)
             if response.status_code == 200:
                 data = json.loads(response.text)

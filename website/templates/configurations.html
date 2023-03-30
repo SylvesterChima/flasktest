@@ -133,16 +133,23 @@
           }
 
         function fbLogin() {
-            console.log('{{userId}}')
-            console.log('{{configId}}')
-            FB.login(function(response) {
-                    console.log(response);
-                    statusChangeCallback(response);
-                },
-                {
-                    config_id: '{{configId}}'
+            FB.getLoginStatus(function(response) {
+                console.log(response);
+                if (response.status === 'connected') {
+                    FB.logout(function(response) {
+                        console.log(response);
+                    });
+                } else {
+                    FB.login(function(response) {
+                        console.log(response);
+                        statusChangeCallback(response);
+                    },
+                    {
+                        config_id: '{{configId}}'
+                    }
+                );
                 }
-            );
+            });
         }
 
 
@@ -184,5 +191,23 @@
       <div id="status"></div>
       <!-- <fb:login-button config_id="188936620679912" onlogin="checkLoginState();"></fb:login-button> -->
 </section>
+
+<table class="table">
+    <tr>
+        <td>Type</td>
+        <td>Page ID</td>
+        <td>Phone ID</td>
+        <td>Page Name</td>
+    </tr>
+    {% for item in configs %}
+        <li>
+            <td>{{ item.type }}</td>
+            <td>{{ item.page_id }}</td>
+            <td>{{ item.phone_id }}</td>
+            <td>{{ item.page_name }}</td>
+        </li>
+    {% endfor %}
+</table>
+
 <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
 {% endblock %}
