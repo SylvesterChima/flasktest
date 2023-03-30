@@ -45,18 +45,18 @@ def is_message_notification(data):
 
 @chat.route('/deleteall', methods=['GET'])
 def deleteAll():
-    # db.session.query(Message).delete()
-    # db.session.commit()
-    # db.session.query(Member).delete()
-    # db.session.commit()
-    # db.session.query(Conversation).delete()
-    # db.session.commit()
+    db.session.query(Message).delete()
+    db.session.commit()
+    db.session.query(Member).delete()
+    db.session.commit()
+    db.session.query(Conversation).delete()
+    db.session.commit()
     db.session.query(CompanyConfig).delete()
     db.session.commit()
-    # db.session.query(User).delete()
-    # db.session.commit()
-    # db.session.query(Company).delete()
-    # db.session.commit()
+    db.session.query(User).delete()
+    db.session.commit()
+    db.session.query(Company).delete()
+    db.session.commit()
     return redirect(url_for('chat.chatapp'))
 
 def get_userinfo(pSID, accessToken):

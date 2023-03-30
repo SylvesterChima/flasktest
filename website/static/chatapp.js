@@ -23,8 +23,9 @@ var baseUri = "http://troologdemo.azurewebsites.net";
         GetConversations(){
           this.conversations = [];
 					const _this = this;
-          axios.get(baseUri + '/conversations')
+          axios.get(baseUri + '/conversations/{{user.id}}')
             .then(function (response) {
+              console.log(response);
               _this.conversations = response.data;
               if(_this.conversations.length > 0){
                 _this.conversation = _this.conversations[0];
@@ -70,7 +71,7 @@ var baseUri = "http://troologdemo.azurewebsites.net";
         },
         GetRecentMessages(){
 					const _this = this;
-          axios.get(baseUri + '/recentmessages/' + this.conversation.id)
+          axios.get(baseUri + '/recentmessages/' + _this.conversation.id)
             .then(function (response) {
               _this.recentMessages = response.data;
               _this.recentMessages.forEach(function (part, index){
