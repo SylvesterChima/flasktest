@@ -172,7 +172,8 @@
             console.log(newMessage);
             const msg = newMessage.message;
             _this.newMessage.message = "";
-            axios.post(baseUri + '/sendmessage', {
+            console.log('dggwgdhdhgwhewhwdehwhe' + newMessage.pageId)
+            axios.post(baseUri + '/sendmessag', {
               type: newMessage.type,
               message: msg,
               recipient: newMessage.recipient,
