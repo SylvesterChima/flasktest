@@ -426,9 +426,14 @@ def sendmessage():
             logging.info(msg)
             timestamp = datetime.utcnow()
             config = CompanyConfig.query.filter_by(page_id=page_id).order_by(CompanyConfig.id.desc()).first()
+            logging.info("****** Config mjson ******")
+            logging.info(config.page_id)
+            logging.info(config.access_token)
             response = requests.post('https://graph.facebook.com/v16.0/'+ config.page_id +'/messages/?access_token=' + config.access_token, json=msg)
+            data = json.loads(response.text)
+            logging.info("****** response mjson ******")
+            logging.info(data)
             if response.status_code == 200:
-                data = json.loads(response.text)
                 message_id = data["message_id"]
                 messageObj = Message(message_id = message_id, message_type="text", sender="Business", sender_message=message, timestamp=timestamp, Conversation_id=conversationId, Member_id=memberId)
                 db.session.add(messageObj)
