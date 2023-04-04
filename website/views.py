@@ -62,7 +62,7 @@ def dashboard():
 
 @views.route('/privacy')
 def privacy():
-    return render_template('privacy.html')
+    return render_template('privacy.html', user=current_user)
 
 @views.route('/profile', methods=['GET', 'POST'])
 @login_required

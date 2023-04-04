@@ -133,7 +133,12 @@ def webhook_action():
                                         "text": fb_handle_message(sender_id, sender_message)
                                     }
                                 }
+                                logging.info("****** access token ******")
+                                logging.info(config.access_tooken)
                                 r = requests.post('https://graph.facebook.com/v16.0/'+ page_id +'/messages/?access_token=' + config.access_token, json=response)
+                                data1 = json.loads(r.text)
+                                logging.info("****** message sent mjson ******")
+                                logging.info(data1)
                             else:
                                 member = Member.query.filter(and_(Member.mobile_phone == sender_id, Member.Conversation_id==conv.id)).first()
                                 if member:
