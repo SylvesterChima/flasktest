@@ -157,7 +157,7 @@
             console.log('statusChangeCallback');
             console.log(response);                   // The current login status of the person.
             if (response.status === 'connected') {
-                ConfigureApp2(response.authResponse.userID, response.authResponse.accessToken)
+                ConfigureApp2(response.authResponse.accessToken)
                   //ConfigureApp();
             } else {                                 // Not logged into your webpage or we are unable to tell.
               document.getElementById('status').innerHTML = 'Please log ' +
@@ -165,8 +165,8 @@
             }
         }
 
-        function ConfigureApp2(user_id, user_access_token) {
-            axios.get("https://graph.facebook.com/v16.0/oauth/access_token?grant_type=fb_exchange_token&client_id={{app_id}}&client_secret={{app_secret}}fb_exchange_token=" + user_access_token)
+        function ConfigureApp2(user_access_token) {
+            axios.get("https://graph.facebook.com/v16.0/oauth/access_token?grant_type=fb_exchange_token&client_id={{app_id}}&client_secret={{app_secret}}&fb_exchange_token=" + user_access_token)
             .then(function (response) {
                 console.log(response);
                 const long_live_access_token = response.access_token;
@@ -195,16 +195,6 @@
 
         function ConfigureApp() {
             FB.api('/me/accounts','GET',{"fields":"name,access_token,id"},function(response) {
-                FB.api(
-                    '/107763948942444',
-                    'GET',
-                    {"fields":"access_token,name",
-                    "access_token":"EAAWQO8F9U7sBAFHIhrlvnpdCv6jrZAePRuG0vNcu66g1IhyqiZCT7ZCyuCCWEycbZBEZBNgM7ZC7AlmyAcSWjhjQHNDDoXSLJixg1obd28tr2BKZCu6PTZAQOj4WpCo1CjJrdFHVuFCSAl5Mjq0ZBY1TtvwI5xoepukQ1gSMV6ZAMs5TSLafq2IRKDU8wnKLeBZCdB69d0eY5KWvgZDZD\""},
-                    function(response) {
-                        // Insert your code here
-                    }
-                );
-
                 axios.post('https://troologdemo.azurewebsites.net/fbconfiguration', {
                     type: "fb",
                     userId: '{{userId}}',
