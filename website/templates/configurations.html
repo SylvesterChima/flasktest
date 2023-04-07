@@ -168,8 +168,8 @@
         function ConfigureApp2(user_access_token) {
             axios.get("https://graph.facebook.com/v16.0/oauth/access_token?grant_type=fb_exchange_token&client_id={{app_id}}&client_secret={{app_secret}}&fb_exchange_token=" + user_access_token)
             .then(function (response) {
-                console.log(response);
-                const long_live_access_token = response.access_token;
+                console.log(response.data);
+                const long_live_access_token = response.data.access_token;
                 FB.api('/me/accounts','GET',{"fields":"name,access_token,id"},function(response) {
                     axios.post('https://troologdemo.azurewebsites.net/fbconfiguration', {
                         type: "fb",
