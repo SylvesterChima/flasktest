@@ -173,7 +173,7 @@ def fbconfiguration():
             db.session.add(config)
             db.session.commit()
 
-            r = requests.post('https://graph.facebook.com/'+ page['id'] + '/subscribed_apps?subscribed_fields=messages,message_reads,message_reactions,messaging_seen,messaging_postbacks,message_deliveries&access_token='+ pData['access_token'])
+            r = requests.post('https://graph.facebook.com/'+ page['id'] + '/subscribed_apps?subscribed_fields=messages,message_reads,message_reactions,messaging_postbacks,message_deliveries&access_token='+ pData['access_token'])
             data1 = json.loads(r.text)
             logging.info("****** subscribed_apps sent mjson ******")
             logging.info(data1)
