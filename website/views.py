@@ -130,9 +130,11 @@ def events():
 @login_required
 def configurations():
     configId = os.getenv('FACEBOOK_CONFIG_ID')
+    app_id = os.getenv('FACEBOOK_OAUTH_CLIENT_ID')
+    app_secret = os.getenv('FACEBOOK_OAUTH_CLIENT_SECRET')
     user = User.query.get(current_user.id)
     configs = CompanyConfig.query.filter_by(company_id = user.company_id).all()
-    return render_template('configurations.html', configs=configs, configId=configId,userId=current_user.id )
+    return render_template('configurations.html', configs=configs, configId=configId,userId=current_user.id, app_id=app_id, app_secret=app_secret )
 
 @views.route('/wpconfiguration', methods=['GET', 'POST'])
 @login_required
@@ -160,10 +162,22 @@ def fbconfiguration():
     user = User.query.get(userId)
     pages = data['data']
     type = data['type']
+    llat = data['llat']
     for page in pages:
-        config = CompanyConfig(access_token=page['access_token'], page_id=page['id'],type=type, page_name=page['name'], company_id=user.company_id)
-        db.session.add(config)
-        db.session.commit()
+        response = requests.get('https://graph.facebook.com/'+ page['id'] +'?fields=access_token&access_token=' + llat)
+        pData = json.loads(response.text)
+        logging.info("****** permanent access token mjson ******")
+        logging.info(pData)
+        if response.status_code == 200:
+            config = CompanyConfig(access_token=pData['access_token'], page_id=page['id'],type=type, page_name=page['name'], company_id=user.company_id)
+            db.session.add(config)
+            db.session.commit()
+
+            r = requests.post('https://graph.facebook.com/'+ page['id'] + '/subscribed_apps?subscribed_fields=messages,message_reads,message_reactions,messaging_seen,messaging_postbacks,message_deliveries&access_token='+ pData['access_token'])
+            data1 = json.loads(r.text)
+            logging.info("****** subscribed_apps sent mjson ******")
+            logging.info(data1)
+
     new_obj = {
         'message': "Added successful"
     }
