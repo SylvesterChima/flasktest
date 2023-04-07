@@ -38,6 +38,7 @@
           <div class="chat_people">
             <div class="chat_img"> <img src="https://ptetutorials.com/images/user-profile.png"> </div>
             <div class="chat_ib">
+              <button class="msg_send_tag" type="button" v-on:click="SendTagMessage(newMessage)">Send Tag Message</button>
               <h5>[[ conversation.name ]]</h5>
               <p v-if="conversation.type == 'wp'">Whatsapp Message</p>
               <p v-else>Facebook Message</p>
@@ -189,6 +190,25 @@
               console.log(error);
             });
           }
+        },
+        SendTagMessage(newMessage){
+          const _this = this;
+          console.log(newMessage);
+          axios.post(baseUri + '/sendtagmessage', {
+            type: newMessage.type,
+            recipient: newMessage.recipient,
+            conversationId: newMessage.conversationId,
+            memberId: newMessage.memberId,
+            pageId: newMessage.pageId
+          })
+          .then(function (response) {
+            console.log(response);
+            _this.newMessage.message = "";
+            _this.messages.push(response.data);
+          })
+          .catch(function (error) {
+            console.log(error);
+          });
         }
       },
       mounted() {

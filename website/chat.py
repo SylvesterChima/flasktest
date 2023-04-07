@@ -140,23 +140,53 @@ def webhook_action():
                                 logging.info("****** message sent mjson ******")
                                 logging.info(data1)
                             else:
+                                last_message = Message.query.filter(and_(Message.sender == sender_id, Message.Conversation_id==conv.id)).order_by(Message.id.desc()).first()
                                 member = Member.query.filter(and_(Member.mobile_phone == sender_id, Member.Conversation_id==conv.id)).first()
                                 if member:
                                     message = Message(message_id = message_id, message_type="text",sender=sender_id, sender_message=sender_message,timestamp=datetime_obj, Conversation_id=conv.id, Member_id=member.id)
                                     db.session.add(message)
                                     db.session.commit()
 
-                                last_message = Message.query.filter(and_(Message.sender == sender_id, Message.Conversation_id==conv.id)).order_by(Message.id.desc()).first()
                                 if last_message:
                                     hour_difference = (datetime.utcnow() - last_message.timestamp).total_seconds() / 3600
                                     if hour_difference >= 24:
                                         response = {
-                                            'recipient': {'id': sender_id},
-                                            "messaging_type": "RESPONSE",
+                                            "recipient":{
+                                                "id":sender_id
+                                            },
                                             "message":{
-                                                "text": fb_handle_message(sender_id, sender_message)
+                                                "attachment":{
+                                                "type":"template",
+                                                "payload":{
+                                                    "template_type":"generic",
+                                                    "elements":[
+                                                    {
+                                                        "title":"Welcome!",
+                                                        "image_url":"https://fastly.picsum.photos/id/866/200/300.jpg?hmac=rcadCENKh4rD6MAp6V_ma-AyWv641M4iiOpe1RyFHeI",
+                                                        "subtitle":"We offers the best toolkits for medium and large organisations to monitor and improve employee and customer satisfaction.",
+                                                        "default_action": {
+                                                        "type": "web_url",
+                                                        "url": "https://troologdemo.azurewebsites.net/",
+                                                        "webview_height_ratio": "tall"
+                                                        },
+                                                        "buttons":[
+                                                        {
+                                                            "type":"web_url",
+                                                            "url":"https://troologdemo.azurewebsites.net/",
+                                                            "title":"View Website"
+                                                        }]
+                                                    }]
+                                                }
+                                                }
                                             }
                                         }
+                                        # response = {
+                                        #     'recipient': {'id': sender_id},
+                                        #     "messaging_type": "RESPONSE",
+                                        #     "message":{
+                                        #         "text": fb_handle_message(sender_id, sender_message)
+                                        #     }
+                                        # }
                                         r = requests.post('https://graph.facebook.com/v16.0/'+ page_id +'/messages/?access_token=' + config.access_token, json=response)
 
         return Response(response="EVENT RECEIVED",status=200)
@@ -266,13 +296,13 @@ def wp_webhook_action():
                             }}
                             response = requests.post('https://graph.facebook.com/v16.0/'+ config.phone_id +'/messages?access_token=' + config.access_token, json=json_data)
                         else:
+                            last_message = Message.query.filter(and_(Message.sender == sender, Message.Conversation_id==conv.id)).order_by(Message.id.desc()).first()
                             member = Member.query.filter(and_(Member.mobile_phone == sender, Member.Conversation_id==conv.id)).first()
                             if member:
                                 message = Message(message_id = message_id, message_type=message_type,sender=sender, sender_message=sender_message,timestamp=datetime_obj, Conversation_id=conv.id, Member_id=member.id)
                                 db.session.add(message)
                                 db.session.commit()
 
-                            last_message = Message.query.filter(and_(Message.sender == sender, Message.Conversation_id==conv.id)).order_by(Message.id.desc()).first()
                             hour_difference = (datetime.utcnow() - last_message.timestamp).total_seconds() / 3600
                             if hour_difference >= 24:
                                 json_data = {"messaging_product": "whatsapp","to": sender,"type": "template",
@@ -442,6 +472,124 @@ def sendmessage():
                     'id': messageObj.id,
                     'message_id': message_id,
                     'message_type': "text",
+                    'sender': "Business",
+                    'sender_message': message,
+                    'timestamp': timestamp,
+                    'Conversation_id': conversationId,
+                    'Member_id': memberId
+                }
+                resp = make_response(new_obj)
+                resp.status_code = 200
+                return resp
+            else:
+                resp = make_response("message failed")
+                resp.status_code = 400
+                return resp
+        else:
+            resp = make_response("message failed")
+            resp.status_code = 400
+            return resp
+    except Exception as e:
+        logging.error(str(e))
+        return 'Error: {}'.format(str(e)), 500
+
+
+@chat.route('/sendtagmessage', methods=['POST'])
+def sendtagmessage():
+    try:
+        data = request.get_json()
+        type = data['type']
+        conversationId = data['conversationId']
+        page_id = data['pageId']
+        memberId = data['memberId']
+        message = "Tag Message"
+        recipient = data['recipient']
+        if type == "wp":
+            msg = {
+                "messaging_product": "whatsapp","to": recipient,"type": "template",
+                "template": {
+                    "name": "hello_world",
+                    "language": {
+                        "code": "en_US"
+                    }
+                }
+            }
+            timestamp = datetime.utcnow()
+            config = CompanyConfig.query.filter_by(phone_id=page_id).order_by(CompanyConfig.id.desc()).first()
+            response = requests.post('https://graph.facebook.com/v16.0/' + config.phone_id + '/messages?access_token=' + config.access_token, json=msg)
+            if response.status_code == 200:
+                data = json.loads(response.text)
+                message_id = data["messages"][0]["id"]
+                messageObj = Message(message_id = message_id, message_type="tag",sender="Business", sender_message=message,timestamp=timestamp, Conversation_id=conversationId, Member_id=memberId)
+                db.session.add(messageObj)
+                db.session.commit()
+                new_obj = {
+                    'id':messageObj.id,
+                    'message_id': message_id,
+                    'message_type': "tag",
+                    'sender': "Business",
+                    'sender_message': message,
+                    'timestamp': timestamp,
+                    'Conversation_id': conversationId,
+                    'Member_id': memberId
+                }
+                resp = make_response(new_obj)
+                resp.status_code = 200
+                return resp
+            else:
+                resp = make_response("message failed")
+                resp.status_code = 400
+                return resp
+        elif type == "fb":
+            msg = {
+                "recipient":{
+                    "id":recipient
+                },
+                "message":{
+                    "attachment":{
+                        "type":"template",
+                        "payload":{
+                            "template_type":"generic",
+                            "elements":[
+                            {
+                                "title":"Welcome!",
+                                "image_url":"https://fastly.picsum.photos/id/866/200/300.jpg?hmac=rcadCENKh4rD6MAp6V_ma-AyWv641M4iiOpe1RyFHeI",
+                                "subtitle":"We offers the best toolkits for medium and large organisations to monitor and improve employee and customer satisfaction.",
+                                "default_action": {
+                                "type": "web_url",
+                                "url": "https://troologdemo.azurewebsites.net/",
+                                "webview_height_ratio": "tall"
+                                },
+                                "buttons":[
+                                {
+                                    "type":"web_url",
+                                    "url":"https://troologdemo.azurewebsites.net/",
+                                    "title":"View Website"
+                                }]
+                            }]
+                        }
+                    }
+                }
+            }
+            logging.info(msg)
+            timestamp = datetime.utcnow()
+            config = CompanyConfig.query.filter_by(page_id=page_id).order_by(CompanyConfig.id.desc()).first()
+            logging.info("****** Config mjson ******")
+            logging.info(config.page_id)
+            logging.info(config.access_token)
+            response = requests.post('https://graph.facebook.com/v16.0/'+ config.page_id +'/messages/?access_token=' + config.access_token, json=msg)
+            data = json.loads(response.text)
+            logging.info("****** response mjson ******")
+            logging.info(data)
+            if response.status_code == 200:
+                message_id = data["message_id"]
+                messageObj = Message(message_id = message_id, message_type="tag", sender="Business", sender_message=message, timestamp=timestamp, Conversation_id=conversationId, Member_id=memberId)
+                db.session.add(messageObj)
+                db.session.commit()
+                new_obj = {
+                    'id': messageObj.id,
+                    'message_id': message_id,
+                    'message_type': "tag",
                     'sender': "Business",
                     'sender_message': message,
                     'timestamp': timestamp,
