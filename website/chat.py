@@ -96,6 +96,37 @@ def webhook_action():
                     timestamp = messaging_event["timestamp"]
                     datetime_obj = datetime.fromtimestamp(int(timestamp)/1000)
 
+                    tagMsg = {
+                        "recipient":{
+                            "id":sender_id
+                        },
+                        "message":{
+                            "attachment":{
+                            "type":"template",
+                            "payload":{
+                                "template_type":"generic",
+                                "elements":[
+                                {
+                                    "title":"Welcome!",
+                                    "image_url":"https://fastly.picsum.photos/id/866/200/300.jpg?hmac=rcadCENKh4rD6MAp6V_ma-AyWv641M4iiOpe1RyFHeI",
+                                    "subtitle":"We offers the best toolkits for medium and large organisations to monitor and improve employee and customer satisfaction.",
+                                    "default_action": {
+                                    "type": "web_url",
+                                    "url": "https://troologdemo.azurewebsites.net/",
+                                    "webview_height_ratio": "tall"
+                                    },
+                                    "buttons":[
+                                    {
+                                        "type":"web_url",
+                                        "url":"https://troologdemo.azurewebsites.net/",
+                                        "title":"View Website"
+                                    }]
+                                }]
+                            }
+                            }
+                        }
+                    }
+
                     if "text" in messaging_event["message"]: #key:text 
                         message_id = messaging_event["message"]["mid"]
                         sender_message = messaging_event["message"]["text"] # message text ="hello there"
@@ -111,31 +142,14 @@ def webhook_action():
 
                                 member = Member(name=user_name, mobile_phone = sender_id, Conversation_id=new_conv.id)
                                 db.session.add(member)
-                                logging.info("****** member mjson ******")
-                                logging.info(member)
                                 member = Member(name="Business", mobile_phone = "Business", Conversation_id=new_conv.id)
                                 db.session.add(member)
-                                logging.info("****** member2 mjson ******")
-                                logging.info(member)
                                 db.session.commit()
-                                logging.info("****** commit mjson ******")
-                                logging.info(member)
 
                                 message = Message(message_id = message_id, message_type="text",sender=sender_id, sender_message=sender_message,timestamp=datetime_obj, Conversation_id=new_conv.id, Member_id=member.id)
                                 db.session.add(message)
                                 db.session.commit()
-                                logging.info("****** message mjson ******")
-                                logging.info(member)
-                                response = {
-                                    'recipient': {'id': sender_id},
-                                    "messaging_type": "RESPONSE",
-                                    "message":{
-                                        "text": fb_handle_message(sender_id, sender_message)
-                                    }
-                                }
-                                logging.info("****** access token ******")
-                                logging.info(config.access_tooken)
-                                r = requests.post('https://graph.facebook.com/v16.0/'+ page_id +'/messages/?access_token=' + config.access_token, json=response)
+                                r = requests.post('https://graph.facebook.com/v16.0/'+ page_id +'/messages/?access_token=' + config.access_token, json=tagMsg)
                                 data1 = json.loads(r.text)
                                 logging.info("****** message sent mjson ******")
                                 logging.info(data1)
@@ -150,44 +164,7 @@ def webhook_action():
                                 if last_message:
                                     hour_difference = (datetime.utcnow() - last_message.timestamp).total_seconds() / 3600
                                     if hour_difference >= 24:
-                                        response = {
-                                            "recipient":{
-                                                "id":sender_id
-                                            },
-                                            "message":{
-                                                "attachment":{
-                                                "type":"template",
-                                                "payload":{
-                                                    "template_type":"generic",
-                                                    "elements":[
-                                                    {
-                                                        "title":"Welcome!",
-                                                        "image_url":"https://fastly.picsum.photos/id/866/200/300.jpg?hmac=rcadCENKh4rD6MAp6V_ma-AyWv641M4iiOpe1RyFHeI",
-                                                        "subtitle":"We offers the best toolkits for medium and large organisations to monitor and improve employee and customer satisfaction.",
-                                                        "default_action": {
-                                                        "type": "web_url",
-                                                        "url": "https://troologdemo.azurewebsites.net/",
-                                                        "webview_height_ratio": "tall"
-                                                        },
-                                                        "buttons":[
-                                                        {
-                                                            "type":"web_url",
-                                                            "url":"https://troologdemo.azurewebsites.net/",
-                                                            "title":"View Website"
-                                                        }]
-                                                    }]
-                                                }
-                                                }
-                                            }
-                                        }
-                                        # response = {
-                                        #     'recipient': {'id': sender_id},
-                                        #     "messaging_type": "RESPONSE",
-                                        #     "message":{
-                                        #         "text": fb_handle_message(sender_id, sender_message)
-                                        #     }
-                                        # }
-                                        r = requests.post('https://graph.facebook.com/v16.0/'+ page_id +'/messages/?access_token=' + config.access_token, json=response)
+                                        r = requests.post('https://graph.facebook.com/v16.0/'+ page_id +'/messages/?access_token=' + config.access_token, json=tagMsg)
 
         return Response(response="EVENT RECEIVED",status=200)
     except Exception as e:
@@ -242,79 +219,72 @@ def wp_webhook_verify():
 
 @chat.route('/whatsapp/webhook', methods=['POST'])
 def wp_webhook_action():
-    # try:
+    try:
+        mjson = request.get_json()
+        logging.error("****** wp mjson ******")
+        logging.error(mjson)
+        logging.error("****** end wp mjson ******")
+        if is_message_notification(mjson):
+            for entry in mjson["entry"]:
+                for changes in entry["changes"]:
+                    name = "user"
+                    for contacts in changes["value"]["contacts"]:
+                        name = contacts["profile"]["name"]
+                    conv_id = changes["value"]["metadata"]["phone_number_id"]
+                    for messages in changes["value"]["messages"]:
+                        message_id = messages["id"]
+                        timestamp = messages["timestamp"]
+                        logging.error("****** after timestamp mjson ******")
+                        logging.error(messages)
+                        message_type = messages["type"]
+                        sender = messages["from"]
+                        sender_message = messages["text"]["body"]
+                        datetime_obj = datetime.fromtimestamp(int(timestamp))
 
-    # except Exception as e:
-    #     logging.error(str(e))
-    #     return Response(response=str(e),status=500)
-
-    mjson = request.get_json()
-    logging.error("****** wp mjson ******")
-    logging.error(mjson)
-    logging.error("****** end wp mjson ******")
-    if is_message_notification(mjson):
-
-        for entry in mjson["entry"]:
-            for changes in entry["changes"]:
-                name = "user"
-                for contacts in changes["value"]["contacts"]:
-                    name = contacts["profile"]["name"]
-                conv_id = changes["value"]["metadata"]["phone_number_id"]
-                for messages in changes["value"]["messages"]:
-                    message_id = messages["id"]
-                    timestamp = messages["timestamp"]
-                    logging.error("****** after timestamp mjson ******")
-                    logging.error(messages)
-                    message_type = messages["type"]
-                    sender = messages["from"]
-                    sender_message = messages["text"]["body"]
-                    datetime_obj = datetime.fromtimestamp(int(timestamp))
-
-                    config = CompanyConfig.query.filter_by(phone_id=conv_id).order_by(CompanyConfig.id.desc()).first()
-                    if config:
-                        conv=Conversation.query.filter_by(conv_id=conv_id).first()
-                        if conv is None:
-                            new_conv = Conversation(name=name, conv_id = conv_id, page_id=conv_id, type="wp", company_id = config.company_id)
-                            db.session.add(new_conv)
-                            db.session.commit()
-
-                            member = Member(name=name, mobile_phone = sender, Conversation_id=new_conv.id)
-                            db.session.add(member)
-                            member = Member(name="Business", mobile_phone = "Business", Conversation_id=new_conv.id)
-                            db.session.add(member)
-                            db.session.commit()
-
-                            message = Message(message_id = message_id, message_type=message_type,sender=sender, sender_message=sender_message,timestamp=datetime_obj, Conversation_id=new_conv.id, Member_id=member.id)
-                            db.session.add(message)
-                            db.session.commit()
-                            json_data = {"messaging_product": "whatsapp","to": sender,"type": "template",
+                        templateMsg = {
+                            "messaging_product": "whatsapp","to": sender,"type": "template",
                             "template": {
                                 "name": "hello_world",
                                 "language": {
                                     "code": "en_US"
                                 }
-                            }}
-                            response = requests.post('https://graph.facebook.com/v16.0/'+ config.phone_id +'/messages?access_token=' + config.access_token, json=json_data)
-                        else:
-                            last_message = Message.query.filter(and_(Message.sender == sender, Message.Conversation_id==conv.id)).order_by(Message.id.desc()).first()
-                            member = Member.query.filter(and_(Member.mobile_phone == sender, Member.Conversation_id==conv.id)).first()
-                            if member:
-                                message = Message(message_id = message_id, message_type=message_type,sender=sender, sender_message=sender_message,timestamp=datetime_obj, Conversation_id=conv.id, Member_id=member.id)
-                                db.session.add(message)
+                            }
+                        }
+
+                        config = CompanyConfig.query.filter_by(phone_id=conv_id).order_by(CompanyConfig.id.desc()).first()
+                        if config:
+                            conv=Conversation.query.filter_by(conv_id=conv_id).first()
+                            if conv is None:
+                                new_conv = Conversation(name=name, conv_id = conv_id, page_id=conv_id, type="wp", company_id = config.company_id)
+                                db.session.add(new_conv)
                                 db.session.commit()
 
-                            hour_difference = (datetime.utcnow() - last_message.timestamp).total_seconds() / 3600
-                            if hour_difference >= 24:
-                                json_data = {"messaging_product": "whatsapp","to": sender,"type": "template",
-                                "template": {
-                                    "name": "hello_world",
-                                    "language": {
-                                        "code": "en_US"
-                                    }
-                                }}
-                                response = requests.post('https://graph.facebook.com/v16.0/'+ config.phone_id +'/messages?access_token=' + config.access_token, json=json_data)
+                                member = Member(name=name, mobile_phone = sender, Conversation_id=new_conv.id)
+                                db.session.add(member)
+                                member = Member(name="Business", mobile_phone = "Business", Conversation_id=new_conv.id)
+                                db.session.add(member)
+                                db.session.commit()
 
-    return Response(response="EVENT RECEIVED",status=200)
+                                message = Message(message_id = message_id, message_type=message_type,sender=sender, sender_message=sender_message,timestamp=datetime_obj, Conversation_id=new_conv.id, Member_id=member.id)
+                                db.session.add(message)
+                                db.session.commit()
+                                response = requests.post('https://graph.facebook.com/v16.0/'+ config.phone_id +'/messages?access_token=' + config.access_token, json=templateMsg)
+                            else:
+                                last_message = Message.query.filter(and_(Message.sender == sender, Message.Conversation_id==conv.id)).order_by(Message.id.desc()).first()
+                                member = Member.query.filter(and_(Member.mobile_phone == sender, Member.Conversation_id==conv.id)).first()
+                                if member:
+                                    message = Message(message_id = message_id, message_type=message_type,sender=sender, sender_message=sender_message,timestamp=datetime_obj, Conversation_id=conv.id, Member_id=member.id)
+                                    db.session.add(message)
+                                    db.session.commit()
+
+                                hour_difference = (datetime.utcnow() - last_message.timestamp).total_seconds() / 3600
+                                if hour_difference >= 24:
+                                    response = requests.post('https://graph.facebook.com/v16.0/'+ config.phone_id +'/messages?access_token=' + config.access_token, json=templateMsg)
+
+        return Response(response="EVENT RECEIVED",status=200)
+    except Exception as e:
+        logging.error(str(e))
+        return 'Error: {}'.format(str(e)), 500
 
 
 @chat.route('/conversations/<int:userId>', methods=['GET'])
