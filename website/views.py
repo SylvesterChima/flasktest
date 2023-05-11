@@ -1,5 +1,6 @@
 from __future__ import print_function
 import uuid
+import nanoid
 from flask import Blueprint,redirect,url_for,render_template,session,request,flash,current_app,jsonify,Response,make_response
 from flask_dance.contrib.facebook import facebook
 import datetime
@@ -18,6 +19,21 @@ from werkzeug.utils import secure_filename
 from .models import User, CompanyConfig, Company
 from . import db
 import logging
+from paystackapi.paystack import Paystack
+paystack_secret_key = "sk_test_bb61240a97e7edc389182ae173fbeff5e97c27f5"
+paystack = Paystack(secret_key=paystack_secret_key)
+from paystackapi.transaction import Transaction
+from paystackapi.transaction_split import TransactionSplit
+
+#from paystack.util import BusinessDataObject 
+
+# Initiate a payment transaction
+# from .paystack.util import BusinessDataObject
+# from .paystack.transaction import initialize_transaction, verify_transaction
+# DUMMY_PAYMENT_REF = 'BSID-48759'
+# Create business data object from HTTP Request with validated form fields
+
+
 
 load_dotenv()
 views = Blueprint('views', __name__,)
@@ -26,9 +42,64 @@ views = Blueprint('views', __name__,)
 ### WSGI App
 SCOPES = ['https://www.googleapis.com/auth/calendar.readonly']
 
+@views.route('/trypayment', methods=['GET'])
+def test_initialize_transaction():
+    generated_ref = nanoid.generate()
+    ref_code = str(generated_ref)
+    response = Transaction.initialize(reference=ref_code, amount='10000', email='chima@troolog.com', subaccount = 'ACCT_evvm9erp1whhwsh')
+    print(response)
+    return redirect(response["data"]["authorization_url"])
+
+@views.route('/splitpayment', methods=['GET'])
+def test_initialize_split_transaction():
+    generated_ref = nanoid.generate()
+    ref_code = str(generated_ref)
+    response = TransactionSplit.create(
+            name="EZE SYLVESTER CHIMA",
+            type="percentage",
+            currency="NGN",
+            subaccounts=[{'subaccount': 'ACCT_evvm9erp1whhwsh', 'share':95 }],
+            bearer_type="account"
+        )
+    print(response)
+    return redirect(response["data"]["authorization_url"])
+
+@views.route('/paymentcallback', methods=['GET'])
+def payment_callback():
+    response = Transaction.verify(reference='reference')
+    print(response)
+
+
+
+# @views.route('/trypayment', methods=['GET'])
+# def test_initialize_transaction():
+#     transaction_object_from_request = BusinessDataObject(
+#     amount=1000,
+#     currency='NGN',
+#     email='friday@duck.com',
+#     reference=DUMMY_PAYMENT_REF,
+#     channels='card'
+
+#     )
+#     initialize = initialize_transaction(transaction_instance=transaction_object_from_request)
+#     server_response = initialize()
+#     return server_response
+#         # do work
+#         #pass
+
+#     # Verify a payment transaction
+#     # Create business data object from HTTP Request with validated form fields
+#     # transaction_object_from_server = BusinessDataObject(**kwargs)
+#     # verify = verify_transaction(transaction_instance=transaction_object_from_server)
+#     # verify_server_response = verify()
+
+
+
 @views.route('/')
 def home():
     session['token'] = uuid.uuid4().hex
+    if 'chatsession' not in session:
+        session['chatsession'] = nanoid.generate()
     return render_template('index.html', user=current_user)
 
 @views.route('/feedback', methods=['GET', 'POST'])

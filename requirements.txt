@@ -20,3 +20,6 @@ python-dotenv
 pyodbc
 flask-cors
 Flask-Dance
+paystackapi
+nanoid
+flask_socketio

@@ -1,6 +1,7 @@
 from flask import Blueprint,redirect,url_for,render_template,session,request,flash,current_app,jsonify,Response,make_response
 from .models import User, Conversation, Member, Message, Company, CompanyConfig
 from datetime import datetime
+import nanoid
 import requests
 import os.path
 import os
@@ -230,7 +231,8 @@ def wp_webhook_action():
                     name = "user"
                     for contacts in changes["value"]["contacts"]:
                         name = contacts["profile"]["name"]
-                    conv_id = changes["value"]["metadata"]["phone_number_id"]
+                    phone_id = changes["value"]["metadata"]["phone_number_id"]
+                    conv_id = contacts["wa_id"]
                     for messages in changes["value"]["messages"]:
                         message_id = messages["id"]
                         timestamp = messages["timestamp"]
@@ -251,7 +253,7 @@ def wp_webhook_action():
                             }
                         }
 
-                        config = CompanyConfig.query.filter_by(phone_id=conv_id).order_by(CompanyConfig.id.desc()).first()
+                        config = CompanyConfig.query.filter_by(phone_id=phone_id).order_by(CompanyConfig.id.desc()).first()
                         if config:
                             conv=Conversation.query.filter_by(conv_id=conv_id).first()
                             if conv is None:
@@ -288,6 +290,7 @@ def wp_webhook_action():
 
 
 @chat.route('/conversations/<int:userId>', methods=['GET'])
+@login_required
 def conversations(userId):
     try:
         result = []
@@ -586,6 +589,21 @@ def sendtagmessage():
 def chatapp():
     return render_template('chatapp.html', user=current_user)
 
+@chat.route('/minichat/<string:orgname>', methods=['GET'])
+def minichat(orgname):
+    print("**************** heloo **************")
+    print(session['chatsession'] + "ggssgsgf")
+    if 'chatsession' not in session:
+        session['chatsession'] = nanoid.generate()
+        print(session['chatsession'])
+    return render_template('minichat.html', user=current_user, orgname=orgname, chatsession = session['chatsession'])
+
 
 def wp_handle_message(user_id, user_message):
     return "Hello "+user_id+" ! You just sent me : " + user_message
+
+
+
+
+
+

@@ -1,10 +1,12 @@
-from website import create_app
+from website import create_app, socketio
 from flask_mail import Mail, Message
 from flask_googlemaps import GoogleMaps, Map, icons
 from flask import render_template
 from flask_login import login_user, login_required, logout_user, current_user
 import os
 from flask_cors import CORS
+# import eventlet
+# from eventlet import wsgi
 
 app = create_app()
 CORS(app)
@@ -71,7 +73,9 @@ def map_created_in_view():
 
 
 if __name__=='__main__':
-    app.run(host="0.0.0.0", port=5000, debug=True)#os.environ.get('DEBUG') == '1')
+    #wsgi.server(eventlet.listen(("127.0.0.1", 5000)), app)
+    #app.run(host="0.0.0.0", port=5000, debug=True)#os.environ.get('DEBUG') == '1')
+    socketio.run(app)
 
 
 

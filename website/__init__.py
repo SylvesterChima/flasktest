@@ -9,7 +9,8 @@ from flask_apscheduler import APScheduler
 from dotenv import load_dotenv
 import urllib
 import logging
-import pyodbc
+from flask_socketio import SocketIO
+from .events import socketio
 
 load_dotenv()
 scheduler = APScheduler()
@@ -55,9 +56,13 @@ def create_app():
     facebook_bp = make_facebook_blueprint()
     app.register_blueprint(facebook_bp, url_prefix="/fbconfiguration")
 
+    
+    
+
     from .models import User
 
     create_database(app)
+    socketio.init_app(app, logger=True, engineio_logger=True, cors_allowed_origins="*")
 
     login_manager = LoginManager()
     login_manager.login_view = 'auth.login'
