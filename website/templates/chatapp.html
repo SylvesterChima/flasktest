@@ -27,7 +27,8 @@
               <div class="chat_ib">
                 <h5>[[ item.name ]] <span class="chat_date">Dec 25</span></h5>
                 <p v-if="item.type == 'wp'">Whatsapp Message</p>
-                <p v-else>Facebook Message</p>
+                <p v-else-if="item.type == 'fb'">Facebook Message</p>
+                <p v-else="item.type == 'web'">Web Chat</p>
               </div>
             </div>
           </div>
@@ -75,7 +76,7 @@
 <script src="https://cdn.jsdelivr.net/npm/vue@3.2.47/dist/vue.global.min.js"></script>
 <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
 <script>
-  var baseUri = "https://troologdemo.azurewebsites.net";
+  var baseUri = "http://127.0.0.1:5000";//"https://troologdemo.azurewebsites.net";
   const { createApp } = Vue
     createApp({
       data() {

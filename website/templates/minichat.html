@@ -10,6 +10,7 @@
         <script src="//cdnjs.cloudflare.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
         <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.8.2/css/all.css">
         <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.0.1/socket.io.js" integrity="sha512-q/dWJ3kcmjBLU4Qc47E4A9kTB4m3wuTY7vkFJDTZKjTs8jhyGQnaUrxa0Ytd0ssMZhbNua9hE+E7Qv1j+DyZwA==" crossorigin="anonymous"></script>
+        <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
         <link rel="stylesheet" href="/static/minichat.css" />
     </head>
     <body>
@@ -38,7 +39,7 @@
                     <ul class="msg-box list-inline text-left d-inline-block float-left">
                         <li> 
                             <img src="https://i.ibb.co/fCzfFJw/person.jpg" alt="" width="40px"> 
-                            <span> {{orgname}} </span>
+                            <span> {{org_name}} </span>
                             <small id="mTest" class="timee"> 12:45 Pm </small> 
                         </li> 
                     </ul>
@@ -48,43 +49,25 @@
                 <div class="row">
                     <div class="col-md-12">
                     <div class="message-box">
-                            <div class="msg_history">
-                                <div class="incoming_msg">
-                                <div class="incoming_msg_img"> <img src="https://ptetutorials.com/images/user-profile.png" alt="sunil"> </div>
-                                <div class="received_msg">
-                                    <div class="received_withd_msg">
-                                    <p>Hi, How are you ?</p>
-                                    <span class="time_date"> 11:01 AM    |    June 9</span></div>
-                                </div>
-                                </div>
-                                <div class="outgoing_msg">
-                                <div class="sent_msg">
-                                    <p>Hello, i am fine thankyou, what about you ?</p>
-                                    <span class="time_date"> 11:01 AM    |    June 9</span> </div>
-                                </div>
-                                <div class="incoming_msg">
-                                <div class="incoming_msg_img"> <img src="https://ptetutorials.com/images/user-profile.png" alt="sunil"> </div>
-                                <div class="received_msg">
-                                    <div class="received_withd_msg">
-                                    <p>I am also good thankyou!</p>
-                                    <span class="time_date"> 11:01 AM    |    Yesterday</span></div>
-                                </div>
-                                </div>
-                                <div class="outgoing_msg">
-                                <div class="sent_msg">
-                                    <p> ok </p>
-                                    <span class="time_date"> 11:01 AM    |    Today</span> </div>
-                                </div>
-                                <div class="incoming_msg">
-                                <div class="incoming_msg_img"> <img src="https://ptetutorials.com/images/user-profile.png" alt="sunil"> </div>
-                                <div class="received_msg">
-                                    <div class="received_withd_msg">
-                                    <p> What's going on ?</p>
-                                    <span class="time_date"> 11:01 AM    |    Today</span></div>
-                                </div>
-                                </div>
+                            <div class="msg_history" id="msg_history">
+                                <!-- <div class="incoming_msg">
+                                    <div class="incoming_msg_img"> 
+                                        <img src="https://ptetutorials.com/images/user-profile.png" alt="sunil"> 
+                                    </div>
+                                    <div class="received_msg">
+                                        <div class="received_withd_msg">
+                                            <p>Hi, How are you ?</p>
+                                            <span class="time_date"> 11:01 AM    |    June 9</span>
+                                        </div>
+                                    </div>
+                                </div> -->
+                                <!-- <div class="outgoing_msg">
+                                    <div class="sent_msg">
+                                        <p>Hello, i am fine thankyou, what about you ?</p>
+                                    </div>
+                                </div> -->
                             </div>
-                    </div>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -104,24 +87,110 @@
         <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js" ></script>
 
         <script type="text/javascript" charset="utf-8">
-            //function validateEmail(email) {
-            //    const re = /\S+@\S+\.\S+/;
-            //    return re.test(email);
-            //}
+            var name = "";
+            var email = "";
+
+            function validateEmail(email) {
+                const re = /\S+@\S+\.\S+/;
+                return re.test(email);
+            }
+
+            // Generate a unique ID
+            function generateUniqueId() {
+                var timestamp = new Date().getTime();
+                var random = Math.floor(Math.random() * 1000000);
+                return timestamp.toString() + random.toString();
+            }
+
+            //disable Socket connector
             var socket = io({autoConnect: false});
+
+            function buildMessage(sender){
+                let msgDiv = document.createElement("div");
+                if(sender == email){
+                    outgoing.classList.add('outgoing_msg');
+                    let sentMsg = document.createElement("div");
+                    sentMsg.classList.add('sent_msg');
+                    let p = document.createElement("p");
+                    p.textContent = data["message"]
+                    sentMsg.appendChild(p);
+                    msgDiv.appendChild(sentMsg);
+                }
+                else{
+                    incoming.classList.add('incoming_msg');
+                    let incoming_msg_img = document.createElement("div");
+                    incoming_msg_img.classList.add('incoming_msg_img');
+                    let img = document.createElement("img");
+                    img.src="https://ptetutorials.com/images/user-profile.png"
+                    let received_msg = document.createElement("div");
+                    received_msg.classList.add('received_msg');
+                    let received_withd_msg = document.createElement("div");
+                    received_withd_msg.classList.add('received_withd_msg');
+                    let p = document.createElement("p");
+                    p.textContent = data["message"]
+                    received_withd_msg.appendChild(p);
+                    received_msg.appendChild(received_withd_msg);
+                    incoming_msg_img.appendChild(img);
+                    msgDiv.appendChild(incoming_msg_img);
+                    msgDiv.appendChild(received_msg);
+                }
+                return msgDiv;
+            }
+
+            function LoadMessages(conv_id){
+                axios.get(baseUri + '/messages/' + conv_id)
+                    .then(function (response) {
+                        var msgs = response.data;
+                        let container = document.getElementById("msg_history");
+                        msgs.forEach((msg) => {
+                            console.log(msg);
+                            let mDiv = buildMessage(msg.sender)
+                            container.appendChild(mDiv);
+                            container.scrolltop = container.scrollHeight
+                        });
+                    })
+                    .catch(function (error) {
+                      // handle error
+                      console.log(error);
+                    })
+                    .finally(function () {
+                      // always executed
+                    });
+            }
+
+            document.addEventListener("DOMContentLoaded", function(event) {
+                var uniqueId = localStorage.getItem('uniqueId');
+                email = localStorage.getItem('savedEmail');
+                name = localStorage.getItem('savedName');
+                if (uniqueId) {
+                    document.getElementById("chat-container").style.display = "block";
+                    document.getElementById("start-chat-container").style.display = "none";
+                    LoadMessages(uniqueId);
+                }
+              });
+
+
             document.getElementById("startchat").addEventListener("click", function() {
-                let name = document.getElementById("name").value;
-                let email = document.getElementById("email").value;
-                //if(Boolean(name) === false || Boolean(email) === false){
-                //    return;
-                //}
-                //if(validateEmail(email) == false){
-                //    return;
-                //}
+                name = document.getElementById("name").value;
+                email = document.getElementById("email").value;
+                // Generate a unique ID if it doesn't exist
+                var uniqueId = localStorage.getItem('uniqueId');
+                if (!uniqueId) {
+                    uniqueId = generateUniqueId();
+                    localStorage.setItem('uniqueId', uniqueId);
+                    localStorage.setItem('savedEmail', email);
+                    localStorage.setItem('savedName', name);
+                }
+                if(Boolean(name) === false || Boolean(email) === false){
+                    return;
+                }
+                if(validateEmail(email) == false){
+                    return;
+                }
                 socket.connect();
                 socket.on("connect", function() {
                     console.log('{{chatsession}}')
-                    socket.emit("user_connected", {"name": name, "email": email, "chatsession": '{{chatsession}}'});
+                    socket.emit("user_connected", {"name": name, "email": email, "chat_session": uniqueId, "org_id": '{{org_id}}', "org_name": '{{org_name}}'});
                 })
                 document.getElementById("chat-container").style.display = "block";
                 document.getElementById("start-chat-container").style.display = "none";
@@ -129,14 +198,18 @@
 
             document.getElementById("sendM").addEventListener("click", function(){
                 let message = document.getElementById("message").value;
-                socket.emit("new_message", {"name": name, "email": email, "chatsession": '{{chatsession}}', "message": message});
-                document.getElementById("message").value = "";
+                if(Boolean(message)){
+                    socket.emit("new_message", {"name": name, "email": email, "chat_session": uniqueId, "message": message, "org_id": '{{org_id}}', "org_name": '{{org_name}}'});
+                    document.getElementById("message").value = "";
+                }
             });
 
             socket.on("chat", function(data) {
                 console.log(data)
-                //let ul = document.getElementById("chat-messages");
-                //let li = document.createElement("li");
+                let container = document.getElementById("msg_history");
+                let mDiv = buildMessage(data["sender"])
+                container.appendChild(mDiv);
+                container.scrolltop = container.scrollHeight
                 //li.appendChild(document.createTextNode(data["username"] + ": " + data["message"]));
                 //ul.appendChild(li);
                 //ul.scrolltop = ul.scrollHeight;

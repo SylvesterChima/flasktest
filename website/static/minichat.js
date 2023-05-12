@@ -11,7 +11,7 @@ function getPosition(position) {
     };
 }
 
-function initialise(orgname) {
+function initialise(orgId) {
     createStyles();
     const container = document.createElement('div');
     container.style.position = 'fixed';
@@ -53,17 +53,16 @@ function initialise(orgname) {
         }
     });
 
-    this.createMessageIframe(messageContainer, orgname);
+    this.createMessageIframe(messageContainer, orgId);
     //this.createMessageContainerContent(messageContainer);
 
     container.appendChild(messageContainer);
     container.appendChild(buttonContainer);
 }
 
-function createMessageIframe(messageContainer, orgname) {
-
+function createMessageIframe(messageContainer, orgId) {
     const iframe = document.createElement('iframe');
-    iframe.src = 'http://127.0.0.1:5000/minichat/' + orgname
+    iframe.src = 'http://127.0.0.1:5000/minichat/' + orgId
     messageContainer.appendChild(iframe);
 
 }
@@ -95,6 +94,7 @@ function createMessageContainerContent(messageContainer) {
 
     messageContainer.appendChild(title);
     messageContainer.appendChild(form);
+
 
 }
 

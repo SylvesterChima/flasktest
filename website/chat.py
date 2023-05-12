@@ -11,6 +11,9 @@ from dotenv import load_dotenv
 import logging
 from sqlalchemy import and_, or_
 from . import db
+from flask_socketio import emit
+from . import socketio
+
 
 load_dotenv()
 chat = Blueprint('chat', __name__,)
@@ -589,18 +592,103 @@ def sendtagmessage():
 def chatapp():
     return render_template('chatapp.html', user=current_user)
 
-@chat.route('/minichat/<string:orgname>', methods=['GET'])
-def minichat(orgname):
-    print("**************** heloo **************")
-    print(session['chatsession'] + "ggssgsgf")
-    if 'chatsession' not in session:
-        session['chatsession'] = nanoid.generate()
-        print(session['chatsession'])
-    return render_template('minichat.html', user=current_user, orgname=orgname, chatsession = session['chatsession'])
+@chat.route('/minichat/<int:org_id>', methods=['GET'])
+def minichat(org_id):
+    # companies = Company.query.all()
+    # for company in companies:
+    #     print(company.name)
+    #     print(company.id)
+    
+        #if 'chat_session' not in session:
+        # session['chat_session'] = nanoid.generate()
+        # print(session['chat_session'])
+    company = Company.query.filter_by(id = org_id).first()
+    return render_template('minichat.html', user=current_user, org_name=company.name, org_id = company.id)
 
 
 def wp_handle_message(user_id, user_message):
     return "Hello "+user_id+" ! You just sent me : " + user_message
+
+@socketio.on('connect')
+def handle_connect():
+    print("client connected")
+
+@socketio.on("user_connected")
+def handle_user_connected(data):
+    name = data['name']
+    email = data['email']
+    chat_session = data['chat_session']
+    org_id = data['org_id']
+    org_name = data['org_name']
+    print('*********** user is connected************')
+    print(f"User joined! {chat_session}")
+    conv = Conversation.query.filter_by(conv_id=chat_session).first()
+    if conv is None:
+        new_conv = Conversation(name= org_name + " (" + name + ")", conv_id = chat_session, page_id=email, type="web", company_id = org_id)
+        db.session.add(new_conv)
+        db.session.commit()
+
+        member = Member(name=name, mobile_phone = email, Conversation_id=new_conv.id)
+        db.session.add(member)
+        member = Member(name="Business", mobile_phone = "Business", Conversation_id=new_conv.id)
+        db.session.add(member)
+        db.session.commit()
+        company = Company.query.filter_by(id = org_id).first()
+        datetime_obj = datetime.now()
+        message = Message(message_id = nanoid.generate(), message_type="text",sender=company.website, sender_message="Hello, How may i help you?",timestamp=datetime_obj, Conversation_id=new_conv.id, Member_id=member.id)
+        db.session.add(message)
+        db.session.commit()
+
+        msg_obj = {
+            'message_id':message.message_id,
+            'name': company.name,
+            'email': company.website,
+            'org_id': org_id,
+            'org_name': org_name,
+            'message_type': message.message_type,
+            'sender': company.website,
+            'message': message.sender_message,
+            'timestamp': message.timestamp,
+            'Conversation_id': message.Conversation_id,
+            'Member_id': message.Member_id,
+            'chat_session': chat_session
+        }
+
+        emit("chat", msg_obj, broadcast=True)
+
+@socketio.on("new_message")
+def handle_new_message(data):
+    name = data['name']
+    email = data['email']
+    chat_session = data['chat_session']
+    org_id = data['org_id']
+    org_name = data['org_name']
+    message = data['message']
+    print(f"New message: {message}")
+    conv=Conversation.query.filter_by(conv_id=chat_session).first()
+    if conv is not None:
+        datetime_obj = datetime.now()
+        member = Member.query.filter(and_(Member.mobile_phone == email, Member.Conversation_id==conv.id)).first()
+        if member is not None:
+            sentMessage = Message(message_id = nanoid.generate(), message_type="text",sender=email, sender_message=message,timestamp=datetime_obj, Conversation_id=conv.id, Member_id=member.id)
+            db.session.add(message)
+            db.session.commit()
+
+            msg_obj = {
+                'message_id':sentMessage.message_id,
+                'name': name,
+                'email': email,
+                'org_id': org_id,
+                'org_name': org_name,
+                'message_type': sentMessage.message_type,
+                'sender': email,
+                'message': sentMessage.sender_message,
+                'timestamp': sentMessage.timestamp,
+                'Conversation_id': sentMessage.Conversation_id,
+                'Member_id': sentMessage.Member_id,
+                'chat_session': chat_session
+            }
+            emit("chat", msg_obj, broadcast=True)
 
 
 

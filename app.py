@@ -5,8 +5,6 @@ from flask import render_template
 from flask_login import login_user, login_required, logout_user, current_user
 import os
 from flask_cors import CORS
-# import eventlet
-# from eventlet import wsgi
 
 app = create_app()
 CORS(app)

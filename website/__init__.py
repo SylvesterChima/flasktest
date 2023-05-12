@@ -9,8 +9,9 @@ from flask_apscheduler import APScheduler
 from dotenv import load_dotenv
 import urllib
 import logging
+#from .events import socketio
 from flask_socketio import SocketIO
-from .events import socketio
+socketio = SocketIO()
 
 load_dotenv()
 scheduler = APScheduler()
@@ -62,7 +63,7 @@ def create_app():
     from .models import User
 
     create_database(app)
-    socketio.init_app(app, logger=True, engineio_logger=True, cors_allowed_origins="*")
+    socketio.init_app(app, cors_allowed_origins="*")
 
     login_manager = LoginManager()
     login_manager.login_view = 'auth.login'
