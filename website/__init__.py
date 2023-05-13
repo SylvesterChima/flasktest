@@ -57,8 +57,7 @@ def create_app():
     facebook_bp = make_facebook_blueprint()
     app.register_blueprint(facebook_bp, url_prefix="/fbconfiguration")
 
-    
-    
+
 
     from .models import User
 
