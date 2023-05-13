@@ -226,13 +226,14 @@
             });
 
             socket.on("chat", function(data) {
-                console.log(data)
-                let container0 = document.getElementById("msg_history");
-                let container = document.getElementById("msg_history");
-                let mDiv = buildMessage(data["sender"], data["message"], data["timestamp"])
-                container.appendChild(mDiv);
-                container.scrollTop = container.scrollHeight;
-                //container0.scrollTop = container0.scrollHeight;
+                if(data["org_id"] == '{{org_id}}'){
+                    console.log(data)
+                    let container0 = document.getElementById("msg_history");
+                    let container = document.getElementById("msg_history");
+                    let mDiv = buildMessage(data["sender"], data["message"], data["timestamp"])
+                    container.appendChild(mDiv);
+                    container.scrollTop = container.scrollHeight;
+                }
             })
         </script>
     </body>
