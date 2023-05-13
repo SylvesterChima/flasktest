@@ -62,7 +62,7 @@ function initialise(orgId) {
 
 function createMessageIframe(messageContainer, orgId) {
     const iframe = document.createElement('iframe');
-    iframe.src = '"https://troologdemo.azurewebsites.net/minichat/' + orgId
+    iframe.src = 'https://troologdemo.azurewebsites.net/minichat/' + orgId
     messageContainer.appendChild(iframe);
 
 }
