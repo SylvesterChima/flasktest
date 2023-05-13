@@ -55,12 +55,12 @@ def deleteAll():
     db.session.commit()
     db.session.query(Conversation).delete()
     db.session.commit()
-    db.session.query(CompanyConfig).delete()
-    db.session.commit()
-    db.session.query(User).delete()
-    db.session.commit()
-    db.session.query(Company).delete()
-    db.session.commit()
+    # db.session.query(CompanyConfig).delete()
+    # db.session.commit()
+    # db.session.query(User).delete()
+    # db.session.commit()
+    # db.session.query(Company).delete()
+    # db.session.commit()
     return redirect(url_for('chat.chatapp'))
 
 def get_userinfo(pSID, accessToken):
@@ -349,6 +349,29 @@ def messages(conversationId):
         logging.error(str(e))
         return 'Error: {}'.format(str(e)), 500
 
+@chat.route('/webmessages/<string:chatsession>', methods=['GET'])
+def web_messages(chatsession):
+    try:
+        result = []
+        conv = Conversation.query.filter_by(conv_id = chatsession).first()
+        messages = Message.query.filter_by(Conversation_id=conv.id).all()
+        for con in messages:
+            new_obj = {
+                'id':con.id,
+                'message_id': con.message_id,
+                'message_type': con.message_type,
+                'sender': con.sender,
+                'sender_message': con.sender_message,
+                'timestamp': con.timestamp,
+                'Conversation_id': con.Conversation_id,
+                'Member_id': con.Member_id
+            }
+            result.append(new_obj)
+        return jsonify(result)
+    except Exception as e:
+        logging.error(str(e))
+        return 'Error: {}'.format(str(e)), 500
+
 @chat.route('/recentmessages/<int:conversationId>', methods=['GET'])
 def recentmessages(conversationId):
     try:
@@ -461,6 +484,41 @@ def sendmessage():
                 resp = make_response("message failed")
                 resp.status_code = 400
                 return resp
+        elif type == "web":
+            datetime_obj = datetime.now()
+            company = Company.query.filter_by(id = current_user.company_id).first()
+            sentMessage = Message(message_id = nanoid.generate(), message_type="text",sender="Business", sender_message=message,timestamp=datetime_obj, Conversation_id=conversationId, Member_id=memberId)
+            db.session.add(sentMessage)
+            db.session.commit()
+
+            new_obj = {
+                'id': sentMessage.id,
+                'message_id': sentMessage.message_id,
+                'message_type': "text",
+                'sender': "Business",
+                'sender_message': sentMessage.sender_message,
+                'timestamp': sentMessage.timestamp,
+                'Conversation_id': sentMessage.Conversation_id,
+                'Member_id': sentMessage.Member_id
+            }
+            msg_obj = {
+                'message_id':sentMessage.message_id,
+                'name': current_user.last_name + ' ' + current_user.first_name,
+                'email': current_user.email,
+                'org_id': company.id,
+                'org_name': company.name,
+                'message_type': sentMessage.message_type,
+                'sender': "Business",
+                'message': sentMessage.sender_message,
+                'timestamp': sentMessage.timestamp.strftime('%Y-%m-%d %H:%M:%S'),
+                'Conversation_id': sentMessage.Conversation_id,
+                'Member_id': sentMessage.Member_id,
+                'chat_session': page_id
+            }
+            socketio.emit("chat", msg_obj)
+            resp = make_response(new_obj)
+            resp.status_code = 200
+            return resp
         else:
             resp = make_response("message failed")
             resp.status_code = 400
@@ -589,25 +647,15 @@ def sendtagmessage():
 
 
 @chat.route('/chatapp', methods=['GET'])
+@login_required
 def chatapp():
     return render_template('chatapp.html', user=current_user)
 
 @chat.route('/minichat/<int:org_id>', methods=['GET'])
 def minichat(org_id):
-    # companies = Company.query.all()
-    # for company in companies:
-    #     print(company.name)
-    #     print(company.id)
-    
-        #if 'chat_session' not in session:
-        # session['chat_session'] = nanoid.generate()
-        # print(session['chat_session'])
     company = Company.query.filter_by(id = org_id).first()
     return render_template('minichat.html', user=current_user, org_name=company.name, org_id = company.id)
 
-
-def wp_handle_message(user_id, user_message):
-    return "Hello "+user_id+" ! You just sent me : " + user_message
 
 @socketio.on('connect')
 def handle_connect():
@@ -624,7 +672,7 @@ def handle_user_connected(data):
     print(f"User joined! {chat_session}")
     conv = Conversation.query.filter_by(conv_id=chat_session).first()
     if conv is None:
-        new_conv = Conversation(name= org_name + " (" + name + ")", conv_id = chat_session, page_id=email, type="web", company_id = org_id)
+        new_conv = Conversation(name= org_name + " (" + name + ")", conv_id = chat_session, page_id=chat_session, type="web", company_id = org_id)
         db.session.add(new_conv)
         db.session.commit()
 
@@ -635,7 +683,7 @@ def handle_user_connected(data):
         db.session.commit()
         company = Company.query.filter_by(id = org_id).first()
         datetime_obj = datetime.now()
-        message = Message(message_id = nanoid.generate(), message_type="text",sender=company.website, sender_message="Hello, How may i help you?",timestamp=datetime_obj, Conversation_id=new_conv.id, Member_id=member.id)
+        message = Message(message_id = nanoid.generate(), message_type="text",sender="Business", sender_message="Hello, How may i help you?",timestamp=datetime_obj, Conversation_id=new_conv.id, Member_id=member.id)
         db.session.add(message)
         db.session.commit()
 
@@ -646,9 +694,9 @@ def handle_user_connected(data):
             'org_id': org_id,
             'org_name': org_name,
             'message_type': message.message_type,
-            'sender': company.website,
+            'sender': "Business",
             'message': message.sender_message,
-            'timestamp': message.timestamp,
+            'timestamp': message.timestamp.strftime('%Y-%m-%d %H:%M:%S'),
             'Conversation_id': message.Conversation_id,
             'Member_id': message.Member_id,
             'chat_session': chat_session
@@ -671,7 +719,7 @@ def handle_new_message(data):
         member = Member.query.filter(and_(Member.mobile_phone == email, Member.Conversation_id==conv.id)).first()
         if member is not None:
             sentMessage = Message(message_id = nanoid.generate(), message_type="text",sender=email, sender_message=message,timestamp=datetime_obj, Conversation_id=conv.id, Member_id=member.id)
-            db.session.add(message)
+            db.session.add(sentMessage)
             db.session.commit()
 
             msg_obj = {
@@ -683,7 +731,7 @@ def handle_new_message(data):
                 'message_type': sentMessage.message_type,
                 'sender': email,
                 'message': sentMessage.sender_message,
-                'timestamp': sentMessage.timestamp,
+                'timestamp': sentMessage.timestamp.strftime('%Y-%m-%d %H:%M:%S'),
                 'Conversation_id': sentMessage.Conversation_id,
                 'Member_id': sentMessage.Member_id,
                 'chat_session': chat_session

@@ -23,12 +23,12 @@ function initialise(orgId) {
     buttonContainer.classList.add('button-container')
 
     const chatIcon = document.createElement('img');
-    chatIcon.src = 'http://127.0.0.1:5000/static/uploads/chat.svg';
+    chatIcon.src = 'https://troologdemo.azurewebsites.net/static/uploads/chat.svg';
     chatIcon.classList.add('icon');
     this.chatIcon = chatIcon;
 
     const closeIcon = document.createElement('img');
-    closeIcon.src = 'http://127.0.0.1:5000/static/uploads/cross.svg';
+    closeIcon.src = 'https://troologdemo.azurewebsites.net/static/uploads/cross.svg';
     closeIcon.classList.add('icon', 'hidden');
     this.closeIcon = closeIcon;
 
@@ -62,7 +62,7 @@ function initialise(orgId) {
 
 function createMessageIframe(messageContainer, orgId) {
     const iframe = document.createElement('iframe');
-    iframe.src = 'http://127.0.0.1:5000/minichat/' + orgId
+    iframe.src = '"https://troologdemo.azurewebsites.net/minichat/' + orgId
     messageContainer.appendChild(iframe);
 
 }

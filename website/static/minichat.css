@@ -3,6 +3,10 @@
 	width: 2px;
 }
 
+.container{
+    padding-right: 5!important;
+    padding-left: 5!important;
+}
 
 ::-webkit-scrollbar-thumb {
 	background: #000; 

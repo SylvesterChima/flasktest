@@ -57,12 +57,12 @@
 
 {% block script %}
 <script>
-  const widgetScriptUrl = 'http://127.0.0.1:5000//static/minichat.js';
+  const widgetScriptUrl = 'https://troologdemo.azurewebsites.net/static/minichat.js';
   const script = document.createElement("script");
   script.src = widgetScriptUrl;
   script.async = true;
   script.onload = () => {
-    initialise("Troolog");
+    initialise(1);
   };
   document.head.appendChild(script);
 </script>

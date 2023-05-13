@@ -89,6 +89,7 @@
         <script type="text/javascript" charset="utf-8">
             var name = "";
             var email = "";
+            var baseUri = "https://troologdemo.azurewebsites.net"; //"http://127.0.0.1:5000";//"https://troologdemo.azurewebsites.net";
 
             function validateEmail(email) {
                 const re = /\S+@\S+\.\S+/;
@@ -105,19 +106,23 @@
             //disable Socket connector
             var socket = io({autoConnect: false});
 
-            function buildMessage(sender){
+            function buildMessage(sender, message, datetime){
                 let msgDiv = document.createElement("div");
                 if(sender == email){
-                    outgoing.classList.add('outgoing_msg');
+                    msgDiv.classList.add('outgoing_msg');
                     let sentMsg = document.createElement("div");
                     sentMsg.classList.add('sent_msg');
                     let p = document.createElement("p");
-                    p.textContent = data["message"]
+                    p.textContent = message;
+                    let span = document.createElement("span");
+                    span.classList.add('time_date');
+                    span.textContent = datetime;
                     sentMsg.appendChild(p);
+                    sentMsg.appendChild(span);
                     msgDiv.appendChild(sentMsg);
                 }
                 else{
-                    incoming.classList.add('incoming_msg');
+                    msgDiv.classList.add('incoming_msg');
                     let incoming_msg_img = document.createElement("div");
                     incoming_msg_img.classList.add('incoming_msg_img');
                     let img = document.createElement("img");
@@ -127,8 +132,12 @@
                     let received_withd_msg = document.createElement("div");
                     received_withd_msg.classList.add('received_withd_msg');
                     let p = document.createElement("p");
-                    p.textContent = data["message"]
+                    p.textContent = message;
+                    let span = document.createElement("span");
+                    span.classList.add('time_date');
+                    span.textContent = datetime;
                     received_withd_msg.appendChild(p);
+                    received_withd_msg.appendChild(span);
                     received_msg.appendChild(received_withd_msg);
                     incoming_msg_img.appendChild(img);
                     msgDiv.appendChild(incoming_msg_img);
@@ -138,15 +147,16 @@
             }
 
             function LoadMessages(conv_id){
-                axios.get(baseUri + '/messages/' + conv_id)
+                axios.get(baseUri + '/webmessages/' + conv_id)
                     .then(function (response) {
                         var msgs = response.data;
+                        console.log(msgs);
                         let container = document.getElementById("msg_history");
                         msgs.forEach((msg) => {
                             console.log(msg);
-                            let mDiv = buildMessage(msg.sender)
+                            let mDiv = buildMessage(msg.sender, msg.sender_message, msg.timestamp)
                             container.appendChild(mDiv);
-                            container.scrolltop = container.scrollHeight
+                            container.scrollTop = container.scrollHeight
                         });
                     })
                     .catch(function (error) {
@@ -162,10 +172,18 @@
                 var uniqueId = localStorage.getItem('uniqueId');
                 email = localStorage.getItem('savedEmail');
                 name = localStorage.getItem('savedName');
-                if (uniqueId) {
+                console.log(email + 'Yes')
+                console.log(name + 'Yes')
+                console.log(uniqueId + 'Yes')
+                if (uniqueId && email && name) {
+                    console.log(email)
+                    LoadMessages(uniqueId);
+                    socket.connect();
+                    socket.on("connect", function() {
+                        socket.emit("user_connected", {"name": name, "email": email, "chat_session": uniqueId, "org_id": '{{org_id}}', "org_name": '{{org_name}}'});
+                    })
                     document.getElementById("chat-container").style.display = "block";
                     document.getElementById("start-chat-container").style.display = "none";
-                    LoadMessages(uniqueId);
                 }
               });
 
@@ -177,8 +195,11 @@
                 var uniqueId = localStorage.getItem('uniqueId');
                 if (!uniqueId) {
                     uniqueId = generateUniqueId();
+                    console.log(uniqueId)
                     localStorage.setItem('uniqueId', uniqueId);
+                    console.log(email)
                     localStorage.setItem('savedEmail', email);
+                    console.log(name)
                     localStorage.setItem('savedName', name);
                 }
                 if(Boolean(name) === false || Boolean(email) === false){
@@ -189,7 +210,6 @@
                 }
                 socket.connect();
                 socket.on("connect", function() {
-                    console.log('{{chatsession}}')
                     socket.emit("user_connected", {"name": name, "email": email, "chat_session": uniqueId, "org_id": '{{org_id}}', "org_name": '{{org_name}}'});
                 })
                 document.getElementById("chat-container").style.display = "block";
@@ -198,6 +218,7 @@
 
             document.getElementById("sendM").addEventListener("click", function(){
                 let message = document.getElementById("message").value;
+                var uniqueId = localStorage.getItem('uniqueId');
                 if(Boolean(message)){
                     socket.emit("new_message", {"name": name, "email": email, "chat_session": uniqueId, "message": message, "org_id": '{{org_id}}', "org_name": '{{org_name}}'});
                     document.getElementById("message").value = "";
@@ -206,13 +227,12 @@
 
             socket.on("chat", function(data) {
                 console.log(data)
+                let container0 = document.getElementById("msg_history");
                 let container = document.getElementById("msg_history");
-                let mDiv = buildMessage(data["sender"])
+                let mDiv = buildMessage(data["sender"], data["message"], data["timestamp"])
                 container.appendChild(mDiv);
-                container.scrolltop = container.scrollHeight
-                //li.appendChild(document.createTextNode(data["username"] + ": " + data["message"]));
-                //ul.appendChild(li);
-                //ul.scrolltop = ul.scrollHeight;
+                container.scrollTop = container.scrollHeight;
+                //container0.scrollTop = container0.scrollHeight;
             })
         </script>
     </body>
