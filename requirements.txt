@@ -1,5 +1,5 @@
 Flask
-gunicorn
+gunicorn==20.1.0
 APScheduler
 Flask-APScheduler
 Flask-Login
@@ -23,4 +23,4 @@ Flask-Dance
 paystackapi
 nanoid
 flask_socketio
-eventlet
+eventlet==0.30.2
