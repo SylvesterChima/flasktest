@@ -9,14 +9,12 @@ from flask_apscheduler import APScheduler
 from dotenv import load_dotenv
 import urllib
 import logging
-#from .events import socketio
 from flask_socketio import SocketIO
 socketio = SocketIO()
 
 load_dotenv()
 scheduler = APScheduler()
 db = SQLAlchemy()
-#facebook_bp = None
 uri = urllib.parse.quote_plus("Driver=ODBC+Driver+18+for+SQL+Server;Server=tcp:troologserver.database.windows.net,1433;Database=troologdata;Uid=troolog;Pwd=@Admin12;Encrypt=yes;TrustServerCertificate=no;Connection Timeout=30;")
 UPLOAD_FOLDER = 'website/static/uploads/'
 ENV = os.getenv("STAGE")
