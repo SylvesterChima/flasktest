@@ -53,14 +53,15 @@
               <div class="incoming_msg_img"> <img src="https://ptetutorials.com/images/user-profile.png" alt="sunil"> </div>
               <div class="received_msg">
                 <div class="received_withd_msg">
-                  <img src="[[msg.image_url]]" alt="img" v-if="msg.image_url !== null && msg.image_url !== ''">
-                  <p v-if="msg.sender_message !== null && msg.image_url !== ''">[[ msg.sender_message ]]</p>
+                  <img v-bind:src="msg.image_url" alt="img" v-if="msg.image_url !== null && msg.image_url !== ''">
+                  <p v-if="msg.sender_message !== null && msg.sender_message !== ''">[[ msg.sender_message ]]</p>
                   <span class="time_date">[[msg.timestamp]]</span></div>
               </div>
             </div>
             <div v-else class="outgoing_msg">
               <div class="sent_msg">
-                <p>[[ msg.sender_message ]]</p>
+                <img v-bind:src="msg.image_url" alt="img" v-if="msg.image_url !== null && msg.image_url !== ''">
+                <p v-if="msg.sender_message !== null && msg.sender_message !== ''">[[ msg.sender_message ]]</p>
                 <span class="time_date">[[msg.timestamp]]</span> </div>
             </div>
           </div>
