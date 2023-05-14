@@ -53,7 +53,8 @@
               <div class="incoming_msg_img"> <img src="https://ptetutorials.com/images/user-profile.png" alt="sunil"> </div>
               <div class="received_msg">
                 <div class="received_withd_msg">
-                  <p>[[ msg.sender_message ]]</p>
+                  <img src="[[msg.image_url]]" alt="img" v-if="msg.image_url !== null && msg.image_url !== ''">
+                  <p v-if="msg.sender_message !== null && msg.image_url !== ''">[[ msg.sender_message ]]</p>
                   <span class="time_date">[[msg.timestamp]]</span></div>
               </div>
             </div>
@@ -188,7 +189,6 @@
             .then(function (response) {
               _this.newMessage.message = "";
               _this.messages.push(response.data);
-              
               let container = document.getElementById("msg_history");
               container.scrollTop = container.scrollHeight;
             })

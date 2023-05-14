@@ -99,7 +99,7 @@ def webhook_action():
                     recipient_id = messaging_event["recipient"]["id"] #bgeb mn eldict elrecipient key
                     timestamp = messaging_event["timestamp"]
                     datetime_obj = datetime.fromtimestamp(int(timestamp)/1000)
-
+                    message_id = messaging_event["message"]["mid"]
                     tagMsg = {
                         "recipient":{
                             "id":sender_id
@@ -130,46 +130,48 @@ def webhook_action():
                             }
                         }
                     }
+                    sender_AttachmentUrl = None
+                    sender_message = None
+                    sender_messageType = "text"
+                    if "text" in messaging_event["message"]: #key:text
+                        sender_message = messaging_event["message"]["text"]
+                    if "attachments" in messaging_event["message"]: 
+                        sender_AttachmentUrl = messaging_event["message"]["attachments"][0]["payload"]["url"]
+                        sender_messageType = messaging_event["message"]["attachments"][0]["type"]
+                    config = CompanyConfig.query.filter_by(page_id=page_id).order_by(CompanyConfig.id.desc()).first()
+                    if config:
+                        conv=Conversation.query.filter_by(conv_id=sender_id).first()
+                        if conv is None:
+                            user = get_userinfo(sender_id, config.access_token)
+                            user_name = user["first_name"] + " " +  user["last_name"]
+                            new_conv = Conversation(name=user_name, conv_id = sender_id, page_id = page_id, type="fb", company_id= config.company_id)
+                            db.session.add(new_conv)
+                            db.session.commit()
 
-                    if "text" in messaging_event["message"]: #key:text 
-                        message_id = messaging_event["message"]["mid"]
-                        sender_message = messaging_event["message"]["text"] # message text ="hello there"
-                        config = CompanyConfig.query.filter_by(page_id=page_id).order_by(CompanyConfig.id.desc()).first()
-                        if config:
-                            conv=Conversation.query.filter_by(conv_id=sender_id).first()
-                            if conv is None:
-                                user = get_userinfo(sender_id, config.access_token)
-                                user_name = user["first_name"] + " " +  user["last_name"]
-                                new_conv = Conversation(name=user_name, conv_id = sender_id, page_id = page_id, type="fb", company_id= config.company_id)
-                                db.session.add(new_conv)
-                                db.session.commit()
-
-                                member = Member(name=user_name, mobile_phone = sender_id, Conversation_id=new_conv.id)
-                                db.session.add(member)
-                                member = Member(name="Business", mobile_phone = "Business", Conversation_id=new_conv.id)
-                                db.session.add(member)
-                                db.session.commit()
-
-                                message = Message(message_id = message_id, message_type="text",sender=sender_id, sender_message=sender_message,timestamp=datetime_obj, Conversation_id=new_conv.id, Member_id=member.id)
+                            member = Member(name=user_name, mobile_phone = sender_id, Conversation_id=new_conv.id)
+                            db.session.add(member)
+                            member = Member(name="Business", mobile_phone = "Business", Conversation_id=new_conv.id)
+                            db.session.add(member)
+                            db.session.commit()
+                            message = Message(message_id = message_id, message_type=sender_messageType,sender=sender_id, sender_message=sender_message,timestamp=datetime_obj, Conversation_id=new_conv.id, Member_id=member.id,image_url=sender_AttachmentUrl)
+                            db.session.add(message)
+                            db.session.commit()
+                            r = requests.post('https://graph.facebook.com/v16.0/'+ page_id +'/messages/?access_token=' + config.access_token, json=tagMsg)
+                            data1 = json.loads(r.text)
+                            logging.info("****** message sent mjson ******")
+                            logging.info(data1)
+                        else:
+                            last_message = Message.query.filter(and_(Message.sender == sender_id, Message.Conversation_id==conv.id)).order_by(Message.id.desc()).first()
+                            member = Member.query.filter(and_(Member.mobile_phone == sender_id, Member.Conversation_id==conv.id)).first()
+                            if member:
+                                message = Message(message_id = message_id, message_type="text",sender=sender_id, sender_message=sender_message,timestamp=datetime_obj, Conversation_id=conv.id, Member_id=member.id,image_url=sender_AttachmentUrl)
                                 db.session.add(message)
                                 db.session.commit()
-                                r = requests.post('https://graph.facebook.com/v16.0/'+ page_id +'/messages/?access_token=' + config.access_token, json=tagMsg)
-                                data1 = json.loads(r.text)
-                                logging.info("****** message sent mjson ******")
-                                logging.info(data1)
-                            else:
-                                last_message = Message.query.filter(and_(Message.sender == sender_id, Message.Conversation_id==conv.id)).order_by(Message.id.desc()).first()
-                                member = Member.query.filter(and_(Member.mobile_phone == sender_id, Member.Conversation_id==conv.id)).first()
-                                if member:
-                                    message = Message(message_id = message_id, message_type="text",sender=sender_id, sender_message=sender_message,timestamp=datetime_obj, Conversation_id=conv.id, Member_id=member.id)
-                                    db.session.add(message)
-                                    db.session.commit()
 
-                                if last_message:
-                                    hour_difference = (datetime.utcnow() - last_message.timestamp).total_seconds() / 3600
-                                    if hour_difference >= 24:
-                                        r = requests.post('https://graph.facebook.com/v16.0/'+ page_id +'/messages/?access_token=' + config.access_token, json=tagMsg)
-
+                            if last_message:
+                                hour_difference = (datetime.utcnow() - last_message.timestamp).total_seconds() / 3600
+                                if hour_difference >= 24:
+                                    r = requests.post('https://graph.facebook.com/v16.0/'+ page_id +'/messages/?access_token=' + config.access_token, json=tagMsg)
         return Response(response="EVENT RECEIVED",status=200)
     except Exception as e:
         logging.error(str(e))
@@ -339,6 +341,7 @@ def messages(conversationId):
                 'message_type': con.message_type,
                 'sender': con.sender,
                 'sender_message': con.sender_message,
+                'image_url': con.image_url,
                 'timestamp': con.timestamp,
                 'Conversation_id': con.Conversation_id,
                 'Member_id': con.Member_id
@@ -362,6 +365,7 @@ def web_messages(chatsession):
                 'message_type': con.message_type,
                 'sender': con.sender,
                 'sender_message': con.sender_message,
+                'image_url': con.image_url,
                 'timestamp': con.timestamp,
                 'Conversation_id': con.Conversation_id,
                 'Member_id': con.Member_id
@@ -385,6 +389,7 @@ def recentmessages(conversationId):
                     'message_type': con.message_type,
                     'sender': con.sender,
                     'sender_message': con.sender_message,
+                    'image_url': con.image_url,
                     'timestamp': con.timestamp,
                     'Conversation_id': con.Conversation_id,
                     'Member_id': con.Member_id
@@ -433,6 +438,7 @@ def sendmessage():
                     'message_type': "text",
                     'sender': "Business",
                     'sender_message': message,
+                    'image_url': "",
                     'timestamp': timestamp,
                     'Conversation_id': conversationId,
                     'Member_id': memberId
@@ -473,6 +479,7 @@ def sendmessage():
                     'message_type': "text",
                     'sender': "Business",
                     'sender_message': message,
+                    'image_url': "",
                     'timestamp': timestamp,
                     'Conversation_id': conversationId,
                     'Member_id': memberId
@@ -497,6 +504,7 @@ def sendmessage():
                 'message_type': "text",
                 'sender': "Business",
                 'sender_message': sentMessage.sender_message,
+                'image_url': "",
                 'timestamp': sentMessage.timestamp,
                 'Conversation_id': sentMessage.Conversation_id,
                 'Member_id': sentMessage.Member_id
