@@ -227,12 +227,15 @@
 
             socket.on("chat", function(data) {
                 if(data["org_id"] == '{{org_id}}'){
-                    console.log(data)
-                    let container0 = document.getElementById("msg_history");
-                    let container = document.getElementById("msg_history");
-                    let mDiv = buildMessage(data["sender"], data["message"], data["timestamp"])
-                    container.appendChild(mDiv);
-                    container.scrollTop = container.scrollHeight;
+                    var uniqueId = localStorage.getItem('uniqueId')
+                    if(data["chat_session"] == uniqueId){
+                        console.log(data)
+                        let container0 = document.getElementById("msg_history");
+                        let container = document.getElementById("msg_history");
+                        let mDiv = buildMessage(data["sender"], data["message"], data["timestamp"])
+                        container.appendChild(mDiv);
+                        container.scrollTop = container.scrollHeight;
+                    }
                 }
             })
         </script>
