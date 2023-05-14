@@ -18,4 +18,5 @@ Flask-Dance
 paystackapi
 nanoid
 flask_socketio
-eventlet
+gevent
+gevent-websocket
