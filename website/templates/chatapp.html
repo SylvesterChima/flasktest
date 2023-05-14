@@ -139,6 +139,8 @@
                 _this.newMessage.type = conv.type;
                 _this.newMessage.message = "";
                 _this.newMessage.pageId = conv.page_id
+                let container = document.getElementById("msg_history");
+                container.scrollTop = container.scrollHeight;
               })
               .catch(function (error) {
                 // handle error
@@ -155,18 +157,14 @@
           axios.get(baseUri + '/recentmessages/' + _this.conversation.id)
             .then(function (response) {
               _this.recentMessages = response.data;
-              let counter = 0;
+              let container = document.getElementById("msg_history");
               _this.recentMessages.forEach(function (part, index){
                 msg = _this.messages.filter(message => message.id == part.id);
                 if(msg.length == 0){
                   _this.messages.push(part)
-                  counter++;
+                  container.scrollTop = container.scrollHeight;
                 }
               });
-              if(counter > 0){
-                let container = document.getElementById("msg_history");
-                container.scrollTop = container.scrollHeight;
-              }
             })
             .catch(function (error) {
               console.log(error);
