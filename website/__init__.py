@@ -29,7 +29,8 @@ def create_app():
     app.config["FACEBOOK_OAUTH_CLIENT_SECRET"] = os.getenv("FACEBOOK_OAUTH_CLIENT_SECRET")
     #app.config["OAUTHLIB_INSECURE_TRANSPORT"] = "true"
     if ENV == 'dev':
-        app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql://postgres:admin@localhost/demodata'
+        #app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql://postgres:admin@localhost/demodata'
+        app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql://eszo:standup12$@esco-dev-server.postgres.database.azure.com/troolog_dev?sslmode=require'
         #app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///market.db'
     else:
         #app.config['SQLALCHEMY_DATABASE_URI'] = 'mssql+pyodbc://dflask:@Standup12@dflask-server.database.windows.net/dflask_data?driver=ODBC+Driver+17+for+SQL+Server'
