@@ -10,6 +10,7 @@ import json
 from dotenv import load_dotenv
 import logging
 from sqlalchemy import and_, or_
+from werkzeug.utils import secure_filename
 from . import db
 from flask_socketio import emit
 from . import socketio
@@ -19,6 +20,7 @@ load_dotenv()
 chat = Blueprint('chat', __name__,)
 verify_token = os.getenv('VERIFY_TOKEN')
 insta_access_token = os.getenv('INSTA_ACCESS_TOKEN')
+baseUrl=os.getenv('BASEURL')
 
 def is_message_notification(data):
     try:
@@ -296,19 +298,28 @@ def wp_webhook_action():
 @chat.route('/api_attachement/<string:page_id>', methods=['POST'])
 def api_attachement(page_id):
     file = request.files['image']
-    data = {
-        'message': '{"attachment":{"type":"image", "payload":{"is_reusable":true}}}'
-    }
-    files = {
-        'filedata': (file.filename, file.stream, file.content_type)
-    }
-    config = CompanyConfig.query.filter_by(page_id=page_id).order_by(CompanyConfig.id.desc()).first()
-    response = requests.post('https://graph.facebook.com/v16.0/me/message_attachments?access_token=' + config.access_token, data=data, files=files)
-    if response.status_code == 200:
-        attachment_id = data["attachment_id"]
-        return attachment_id
+    nanoid.generate()
+    if file.filename != '':
+        filename = secure_filename(file.filename)
+        f_name=nanoid.generate() + '_' + page_id + '_' + filename
+        file.save(os.path.join(current_app.config['UPLOAD_FOLDER'], f_name))
+        return baseUrl + url_for('static', filename='uploads/') + f_name, 200
     else:
-        return 'Image upload failed', response.status_code
+        return 'failed', 400
+    # data = {
+    #     'message': '{"attachment":{"type":"image", "payload":{"is_reusable":true}}}'
+    # }
+    # files = {
+    #     'filedata': (file.filename, file.stream, file.content_type)
+    # }
+    # config = CompanyConfig.query.filter_by(page_id=page_id).order_by(CompanyConfig.id.desc()).first()
+    # response = requests.post('https://graph.facebook.com/v16.0/me/message_attachments?access_token=' + config.access_token, data=data, files=files)
+    # resp = json.loads(response.text)
+    # if response.status_code == 200:
+    #     attachment_id = resp["attachment_id"]
+    #     return attachment_id
+    # else:
+    #     return 'Image upload failed', response.status_code
 
 
 @chat.route('/conversations/<int:userId>', methods=['GET'])
@@ -429,24 +440,37 @@ def sendmessage():
         memberId = data['memberId']
         message = data['message']
         recipient = data['recipient']
+        fileUrl = data['fileUrl']
         if type == "wp":
-            msg = {
-                "messaging_product": "whatsapp",
-                "recipient_type": "individual",
-                "to": recipient,
-                "type": "text",
-                "text": {
-                    "preview_url": False,
-                    "body": message
+            msg = {}
+            if fileUrl:
+                msg = {
+                    "messaging_product": "whatsapp",
+                    "recipient_type": "individual",
+                    "to": recipient,
+                    "type": "image",
+                    "image": {
+                        "link" : fileUrl
+                    }
                 }
-            }
+            else:
+                msg = {
+                    "messaging_product": "whatsapp",
+                    "recipient_type": "individual",
+                    "to": recipient,
+                    "type": "text",
+                    "text": {
+                        "preview_url": False,
+                        "body": message
+                    }
+                }
             timestamp = datetime.utcnow()
             config = CompanyConfig.query.filter_by(phone_id=page_id).order_by(CompanyConfig.id.desc()).first()
             response = requests.post('https://graph.facebook.com/v16.0/' + config.phone_id + '/messages?access_token=' + config.access_token, json=msg)
             if response.status_code == 200:
                 data = json.loads(response.text)
                 message_id = data["messages"][0]["id"]
-                messageObj = Message(message_id = message_id, message_type="text",sender="Business", sender_message=message,timestamp=timestamp, Conversation_id=conversationId, Member_id=memberId)
+                messageObj = Message(message_id = message_id, message_type="text",sender="Business", sender_message=message,timestamp=timestamp, Conversation_id=conversationId, Member_id=memberId,image_url=fileUrl)
                 db.session.add(messageObj)
                 db.session.commit()
                 new_obj = {
@@ -455,7 +479,7 @@ def sendmessage():
                     'message_type': "text",
                     'sender': "Business",
                     'sender_message': message,
-                    'image_url': "",
+                    'image_url': fileUrl,
                     'timestamp': timestamp,
                     'Conversation_id': conversationId,
                     'Member_id': memberId
@@ -468,13 +492,29 @@ def sendmessage():
                 resp.status_code = 400
                 return resp
         elif type == "fb":
-            msg = {
-                'recipient': {'id': recipient},
-                "messaging_type": "RESPONSE",
-                "message":{
-                    "text": message
+            msg = {}
+            if fileUrl:
+                msg = {
+                    "recipient": {"id": recipient},
+                    "messaging_type": "RESPONSE",
+                    "message":{
+                        "attachment":{
+                            "type":"image",
+                            "payload":{
+                                "url":fileUrl,
+                                "is_reusable":True
+                            }
+                        }
+                    }
                 }
-            }
+            else:
+                msg = {
+                    "recipient": {"id": recipient},
+                    "messaging_type": "RESPONSE",
+                    "message":{
+                        "text": message
+                    }
+                }
             logging.info(msg)
             timestamp = datetime.utcnow()
             config = CompanyConfig.query.filter_by(page_id=page_id).order_by(CompanyConfig.id.desc()).first()
@@ -485,9 +525,10 @@ def sendmessage():
             data = json.loads(response.text)
             logging.info("****** response mjson ******")
             logging.info(data)
+            print(data)
             if response.status_code == 200:
                 message_id = data["message_id"]
-                messageObj = Message(message_id = message_id, message_type="text", sender="Business", sender_message=message, timestamp=timestamp, Conversation_id=conversationId, Member_id=memberId)
+                messageObj = Message(message_id = message_id, message_type="text", sender="Business", sender_message=message, timestamp=timestamp, Conversation_id=conversationId, Member_id=memberId,image_url=fileUrl)
                 db.session.add(messageObj)
                 db.session.commit()
                 new_obj = {
@@ -496,7 +537,7 @@ def sendmessage():
                     'message_type': "text",
                     'sender': "Business",
                     'sender_message': message,
-                    'image_url': "",
+                    'image_url': fileUrl,
                     'timestamp': timestamp,
                     'Conversation_id': conversationId,
                     'Member_id': memberId
@@ -674,7 +715,7 @@ def sendtagmessage():
 @chat.route('/chatapp', methods=['GET'])
 @login_required
 def chatapp():
-    return render_template('chatapp.html', user=current_user)
+    return render_template('chatapp.html', user=current_user,baseUrl=baseUrl)
 
 @chat.route('/minichat/<int:org_id>', methods=['GET'])
 def minichat(org_id):

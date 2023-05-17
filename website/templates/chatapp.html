@@ -53,7 +53,7 @@
               <div class="incoming_msg_img"> <img src="https://ptetutorials.com/images/user-profile.png" alt="sunil"> </div>
               <div class="received_msg">
                 <div class="received_withd_msg">
-                  <img v-bind:src="msg.image_url" alt="img" v-if="msg.image_url !== null && msg.image_url !== ''">
+                  <img v-bind:src="msg.image_url" alt="img" class="img" v-if="msg.image_url !== null && msg.image_url !== ''">
                   <p v-if="msg.sender_message !== null && msg.sender_message !== ''">[[ msg.sender_message ]]</p>
                   <span class="time_date">[[msg.timestamp]]</span></div>
               </div>
@@ -66,17 +66,16 @@
             </div>
           </div>
         </div>
+        <div class="img_container" v-show="imageVisible">
+          <img v-bind:src="imageToSend" alt="img">
+          <div class="uploding"  v-show="isUploding"></div>
+          <button class="cancle_img_btn" type="button" v-on:click="RemoveImage"><i class="fa-solid fa-circle-xmark"></i></button>
+        </div>
         <div class="type_msg">
-          <input type="file" hidden id="hidenFile" accept=".png, .jpg, .jpeg, .gif" name="ProfileImage">
-          <div class="mt-2 text-center">
-            <button class="btn btn-primary" id="imageButton" type="button">
-              Attach
-            </button>
-          </div>
-          <div class="input_msg_write">
-            <input type="text" class="write_msg" v-model="newMessage.message" placeholder="Type a message" />
-          </div>
-          <button class="msg_send_btn" type="button" v-on:click="SendMessage(newMessage)"><i class="fa-solid fa-paper-plane" v-on:click="SendMessage(newMessage)"></i></button>
+          <input type="file" hidden id="hidenFile" @change="HandleFileUpload" accept=".png, .jpg, .jpeg, .gif">
+          <button class="attach_btn" type="button" :disabled="imageVisible" v-on:click="StartFileUpload" id="imageButton"><i class="fa-solid fa-paperclip"></i></button>
+          <input type="text" class="msg_input" v-model="newMessage.message" :disabled="imageVisible" placeholder="Type a message" />
+          <button class="send_btn" type="button" v-on:click="SendMessage(newMessage)"><i class="fa-solid fa-paper-plane" v-on:click="SendMessage(newMessage)"></i></button>
         </div>
       </div>
     </div>
@@ -86,8 +85,7 @@
 <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
 
 <script>
-  var baseUri = "https://troologdemo.azurewebsites.net"; //"http://127.0.0.1:5000";//"https://troologdemo.azurewebsites.net";
-  var page_id = "";
+  var baseUri = "{{baseUrl}}"; //"http://127.0.0.1:5000"; //"http://127.0.0.1:5000";//"https://troologdemo.azurewebsites.net";
   const { createApp } = Vue
     createApp({
       data() {
@@ -96,6 +94,10 @@
           conversation: {},
           messages: [],
           recentMessages: [],
+          selectedFile: null,
+          imageToSend: null,
+          imageVisible: false,
+          isUploding: false,
           newMessage: {
             recipient: "",
             type: "",
@@ -103,12 +105,41 @@
             memberId: "",
             message: "",
             phoneId: "",
-            pageId: ""
+            pageId: "",
+            fileUrl: ""
           }
         }
       },
       delimiters: ['[[', ']]'],
       methods: {
+        HandleFileUpload(event) {
+          this.selectedFile = event.target.files[0];
+          this.imageToSend = window.URL.createObjectURL(this.selectedFile)
+          this.isUploding=true;
+          this.imageVisible=true;
+          const formData = new FormData();
+          formData.append('image', this.selectedFile);
+          const _this = this;
+          axios.post(baseUri + '/api_attachement/'+ _this.newMessage.pageId, formData)
+            .then(function(response) {
+                console.log(response.data);
+                _this.isUploding=false;
+                _this.newMessage.fileUrl = response.data;
+            })
+            .catch(function(error) {
+                console.log(error.response.data);
+                _this.imageVisible=false;
+                _this.isUploding=false;
+            });
+        },
+        StartFileUpload(){
+          const hidenFile = document.getElementById('hidenFile');
+          hidenFile.click();
+        },
+        RemoveImage(){
+          this.imageVisible=false;
+          this.newMessage.fileUrl = "";
+        },
         GetConversations(){
           this.conversations = [];
 					const _this = this;
@@ -147,7 +178,6 @@
                 _this.newMessage.type = conv.type;
                 _this.newMessage.message = "";
                 _this.newMessage.pageId = conv.page_id;
-                page_id =conv.page_id;
                 let container = document.getElementById("msg_history");
                 container.scrollTop = container.scrollHeight;
               })
@@ -185,21 +215,26 @@
         SendMessage(newMessage){
           const _this = this;
           console.log(newMessage);
-          if(newMessage.message != ""){
+          if(newMessage.message != "" || newMessage.fileUrl != ""){
             console.log(newMessage);
             const msg = newMessage.message;
+            const fUrl = newMessage.fileUrl;
             _this.newMessage.message = "";
-            console.log('dggwgdhdhgwhewhwdehwhe' + newMessage.pageId)
+            _this.newMessage.fileUrl = "";
+            _this.imageVisible=false;
             axios.post(baseUri + '/sendmessage', {
               type: newMessage.type,
               message: msg,
               recipient: newMessage.recipient,
               conversationId: newMessage.conversationId,
               memberId: newMessage.memberId,
-              pageId: newMessage.pageId
+              pageId: newMessage.pageId,
+              fileUrl: fUrl
             })
             .then(function (response) {
               _this.newMessage.message = "";
+              _this.newMessage.fileUrl = "";
+              _this.imageVisible=false;
               _this.messages.push(response.data);
               let container = document.getElementById("msg_history");
               container.scrollTop = container.scrollHeight;
@@ -235,33 +270,4 @@
       }
     }).mount('#app')
 </script>
-{% endblock %}
-
-{% block script %}
-  <script>
-    const upload = (file) => {
-      console.log(file);
-      const formData = new FormData();
-      formData.append('image', file);
-      axios.post(baseUri + '/api_attachement/'+ page_id, formData)
-        .then(function(response) {
-            console.log(response.data);
-            // Handle success
-        })
-        .catch(function(error) {
-            console.log(error.response.data);
-            // Handle error
-        });
-    };
-
-    const hidenFile = document.getElementById('hidenFile');
-    const imageButton = document.getElementById('imageButton');
-    const onSelectFile = () => upload(hidenFile.files[0]);
-    hidenFile.addEventListener('change', onSelectFile, false);
-
-    imageButton.addEventListener('click', function(){
-      hidenFile.click();
-    });
-
-  </script>
 {% endblock %}
