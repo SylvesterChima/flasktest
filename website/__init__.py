@@ -34,8 +34,8 @@ def create_app():
     else:
         #app.config['SQLALCHEMY_DATABASE_URI'] = 'mssql+pyodbc://dflask:@Standup12@dflask-server.database.windows.net/dflask_data?driver=ODBC+Driver+17+for+SQL+Server'
         #app.config['SQLALCHEMY_DATABASE_URI'] = "mssql+pyodbc:///?odbc_connect=%s" % uri
-        app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql://vcoibczjbx:H2D8UYTZ582Z3OOU$@troologdemo-server.postgres.database.azure.com/troologdemo-database?sslmode=require'
-
+        #app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql://vcoibczjbx:H2D8UYTZ582Z3OOU$@troologdemo-server.postgres.database.azure.com/troologdemo-database?sslmode=require'
+        app.config['SQLALCHEMY_DATABASE_URI'] = 'postgres://eszo:@Standup12@esco-dev-server.postgres.database.azure.com/troolog_dev?sslmode=require'
     app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
     #with app.app_context():
     #    db.init_app(app)

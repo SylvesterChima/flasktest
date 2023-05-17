@@ -135,7 +135,7 @@ def webhook_action():
                     sender_messageType = "text"
                     if "text" in messaging_event["message"]: #key:text
                         sender_message = messaging_event["message"]["text"]
-                    if "attachments" in messaging_event["message"]: 
+                    if "attachments" in messaging_event["message"]:
                         sender_AttachmentUrl = messaging_event["message"]["attachments"][0]["payload"]["url"]
                         sender_messageType = messaging_event["message"]["attachments"][0]["type"]
                     config = CompanyConfig.query.filter_by(page_id=page_id).order_by(CompanyConfig.id.desc()).first()
@@ -292,6 +292,23 @@ def wp_webhook_action():
     except Exception as e:
         logging.error(str(e))
         return 'Error: {}'.format(str(e)), 500
+
+@chat.route('/api_attachement/<string:page_id>', methods=['POST'])
+def api_attachement(page_id):
+    file = request.files['image']
+    data = {
+        'message': '{"attachment":{"type":"image", "payload":{"is_reusable":true}}}'
+    }
+    files = {
+        'filedata': (file.filename, file.stream, file.content_type)
+    }
+    config = CompanyConfig.query.filter_by(page_id=page_id).order_by(CompanyConfig.id.desc()).first()
+    response = requests.post('https://graph.facebook.com/v16.0/me/message_attachments?access_token=' + config.access_token, data=data, files=files)
+    if response.status_code == 200:
+        attachment_id = data["attachment_id"]
+        return attachment_id
+    else:
+        return 'Image upload failed', response.status_code
 
 
 @chat.route('/conversations/<int:userId>', methods=['GET'])

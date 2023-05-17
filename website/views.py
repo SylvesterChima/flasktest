@@ -117,13 +117,21 @@ def profile():
 @login_required
 def api_profile():
     file = request.files['ProfileImage']
+    print(file)
     if file.filename != '':
+        print(file.filename)
+        dd=(file.filename, file.stream, file.content_type)
+        print(dd)
         filename = secure_filename(file.filename)
+        print(filename)
         file.save(os.path.join(current_app.config['UPLOAD_FOLDER'], filename))
     user = User.query.get(current_user.id)
     user.profile_image = filename
     db.session.commit()
     return redirect(url_for('views.profile'))
+
+
+
 
 
 

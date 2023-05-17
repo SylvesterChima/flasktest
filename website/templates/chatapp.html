@@ -67,6 +67,12 @@
           </div>
         </div>
         <div class="type_msg">
+          <input type="file" hidden id="hidenFile" accept=".png, .jpg, .jpeg, .gif" name="ProfileImage">
+          <div class="mt-2 text-center">
+            <button class="btn btn-primary" id="imageButton" type="button">
+              Attach
+            </button>
+          </div>
           <div class="input_msg_write">
             <input type="text" class="write_msg" v-model="newMessage.message" placeholder="Type a message" />
           </div>
@@ -78,8 +84,10 @@
 </div>
 <script src="https://cdn.jsdelivr.net/npm/vue@3.2.47/dist/vue.global.min.js"></script>
 <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+
 <script>
-  var baseUri = "https://troologdemo.azurewebsites.net"; //"http://127.0.0.1:5000";//"https://troologdemo.azurewebsites.net";
+  var baseUri = "http://127.0.0.1:5000"; //"http://127.0.0.1:5000";//"https://troologdemo.azurewebsites.net";
+  var page_id = "";
   const { createApp } = Vue
     createApp({
       data() {
@@ -138,7 +146,8 @@
                 _this.newMessage.conversationId = conv.id;
                 _this.newMessage.type = conv.type;
                 _this.newMessage.message = "";
-                _this.newMessage.pageId = conv.page_id
+                _this.newMessage.pageId = conv.page_id;
+                page_id =conv.page_id;
                 let container = document.getElementById("msg_history");
                 container.scrollTop = container.scrollHeight;
               })
@@ -226,4 +235,33 @@
       }
     }).mount('#app')
 </script>
+{% endblock %}
+
+{% block script %}
+  <script>
+    const upload = (file) => {
+      console.log(file);
+      const formData = new FormData();
+      formData.append('image', file);
+      axios.post(baseUri + '/api_attachement/'+ page_id, formData)
+        .then(function(response) {
+            console.log(response.data);
+            // Handle success
+        })
+        .catch(function(error) {
+            console.log(error.response.data);
+            // Handle error
+        });
+    };
+
+    const hidenFile = document.getElementById('hidenFile');
+    const imageButton = document.getElementById('imageButton');
+    const onSelectFile = () => upload(hidenFile.files[0]);
+    hidenFile.addEventListener('change', onSelectFile, false);
+
+    imageButton.addEventListener('click', function(){
+      hidenFile.click();
+    });
+
+  </script>
 {% endblock %}
