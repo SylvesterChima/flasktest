@@ -285,11 +285,14 @@ def wp_webhook_action():
                                 headers = {
                                     "Authorization": "Bearer " + config.access_token
                                 }
+                                logging.error("****** image info ******")
+                                logging.error(sender_media_id)
                                 imgResponse = requests.get('https://graph.facebook.com/v16.0/'+ sender_media_id + '/', headers=headers)
+                                ndata = json.loads(response.text)
+                                logging.error(ndata)
                                 if imgResponse.status_code == 200:
-                                    data = json.loads(response.text)
-                                    img_url = data["url"]
-
+                                    img_url = ndata["url"]
+                                    logging.error(img_url)
                                     downlodResponse = requests.get(img_url, headers=headers)
                                     f_name=os.path.join(current_app.config['UPLOAD_FOLDER'], 'wp_' + nanoid.generate() + '_' + conv_id + '_app.jpg')
                                     with open(f_name, "wb") as file:
