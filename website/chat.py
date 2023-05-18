@@ -257,6 +257,8 @@ def wp_webhook_action():
                         if "image" in messages:
                             print("****image******")
                             sender_media_id = messages["image"]["id"]
+                            if "caption" in messages["image"]:
+                                sender_message = messages["image"]["caption"]
 
                         datetime_obj = datetime.fromtimestamp(int(timestamp))
 
