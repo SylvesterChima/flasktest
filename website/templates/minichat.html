@@ -185,22 +185,34 @@
             }
 
             document.addEventListener("DOMContentLoaded", function(event) {
-                var uniqueId = localStorage.getItem('uniqueId');
-                email = localStorage.getItem('savedEmail');
-                name = localStorage.getItem('savedName');
-                console.log(email + 'Yes')
-                console.log(name + 'Yes')
-                console.log(uniqueId + 'Yes')
-                if (uniqueId && email && name) {
-                    console.log(email)
-                    LoadMessages(uniqueId);
-                    socket.connect();
-                    socket.on("connect", function() {
-                        socket.emit("user_connected", {"name": name, "email": email, "chat_session": uniqueId, "org_id": '{{org_id}}', "org_name": '{{org_name}}'});
-                    })
-                    document.getElementById("chat-container").style.display = "block";
-                    document.getElementById("start-chat-container").style.display = "none";
+                localStorage.clear();
+                var savedDate = localStorage.getItem('currentDate');
+                if(savedDate){
+                    var parsedDate = new Date(savedDate);
+                    var currentDate = new Date();
+                    var diffInMilliseconds = Math.abs(currentDate - parsedDate);
+                    var diffInDays = Math.ceil(diffInMilliseconds / (1000 * 60 * 60 * 24));
+                    console.log("diffInDays")
+                    console.log(diffInDays)
+                    if(diffInDays > 0){
+                        localStorage.clear();
+                    }
+
+                    var uniqueId = localStorage.getItem('uniqueId');
+                    email = localStorage.getItem('savedEmail');
+                    name = localStorage.getItem('savedName');
+                    if (uniqueId && email && name) {
+                        console.log(email)
+                        LoadMessages(uniqueId);
+                        socket.connect();
+                        socket.on("connect", function() {
+                            socket.emit("user_connected", {"name": name, "email": email, "chat_session": uniqueId, "org_id": '{{org_id}}', "org_name": '{{org_name}}'});
+                        })
+                        document.getElementById("chat-container").style.display = "block";
+                        document.getElementById("start-chat-container").style.display = "none";
+                    }
                 }
+                
               });
 
 
@@ -213,6 +225,9 @@
                     uniqueId = generateUniqueId();
                     console.log(uniqueId)
                     localStorage.setItem('uniqueId', uniqueId);
+                    var currentDate = new Date();
+                    var dateString = currentDate.toDateString();
+                    localStorage.setItem('currentDate', dateString)
                     console.log(email)
                     localStorage.setItem('savedEmail', email);
                     console.log(name)
