@@ -114,11 +114,6 @@
                     msgDiv.classList.add('outgoing_msg');
                     let sentMsg = document.createElement("div");
                     sentMsg.classList.add('sent_msg');
-                    let p = document.createElement("p");
-                    p.textContent = message;
-                    let span = document.createElement("span");
-                    span.classList.add('time_date');
-                    span.textContent = datetime;
 
                     if(Boolean(image_url)){
                         let media = document.createElement("img");
@@ -127,7 +122,16 @@
                         sentMsg.appendChild(media)
                     }
 
-                    sentMsg.appendChild(p);
+                    if(Boolean(message)){
+                        let p = document.createElement("p");
+                        p.textContent = message;
+                        sentMsg.appendChild(p);
+                    }
+
+                    let span = document.createElement("span");
+                    span.classList.add('time_date');
+                    span.textContent = datetime;
+
                     sentMsg.appendChild(span);
                     msgDiv.appendChild(sentMsg);
                 }
@@ -141,18 +145,24 @@
                     received_msg.classList.add('received_msg');
                     let received_withd_msg = document.createElement("div");
                     received_withd_msg.classList.add('received_withd_msg');
-                    let p = document.createElement("p");
-                    p.textContent = message;
-                    let span = document.createElement("span");
-                    span.classList.add('time_date');
-                    span.textContent = datetime;
+
                     if(Boolean(image_url)){
                         let media = document.createElement("img");
                         media.classList.add('sent_img');
                         media.src= image_url
                         received_withd_msg.appendChild(media)
                     }
-                    received_withd_msg.appendChild(p);
+
+                    if(Boolean(message)){
+                        let p = document.createElement("p");
+                        p.textContent = message;
+                        received_withd_msg.appendChild(p);
+                    }
+
+                    let span = document.createElement("span");
+                    span.classList.add('time_date');
+                    span.textContent = datetime;
+
                     received_withd_msg.appendChild(span);
                     received_msg.appendChild(received_withd_msg);
                     incoming_msg_img.appendChild(img);
