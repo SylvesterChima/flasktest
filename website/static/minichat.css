@@ -230,3 +230,8 @@ span.chat-time {
 #chat-container{
     display:none;
 }
+.sent_img{
+    max-width: 160px;
+    max-height: 160px;
+    object-fit: contain;
+  }

@@ -74,8 +74,10 @@
             <div class="send-message">
                 <div class="container">
                     <form action="" method="">
+                        <input type="file" hidden id="hidenFile" accept=".png, .jpg, .jpeg, .gif">
                         <textarea cols="10" rows="2" class="form-control" id="message" placeholder="Type your message here ..."> </textarea>
                         <ul class="list-inline">
+                        <li id="sendA"> <i class="fas fa-paperclip"></i> </li>
                         <li id="sendM"> <i class="fas fa-paper-plane"></i> </li>
                         </ul>
                     </form>
@@ -106,7 +108,7 @@
             //disable Socket connector
             var socket = io({autoConnect: false});
 
-            function buildMessage(sender, message, datetime){
+            function buildMessage(sender, message, datetime, image_url){
                 let msgDiv = document.createElement("div");
                 if(sender == email){
                     msgDiv.classList.add('outgoing_msg');
@@ -117,6 +119,14 @@
                     let span = document.createElement("span");
                     span.classList.add('time_date');
                     span.textContent = datetime;
+
+                    if(Boolean(image_url)){
+                        let media = document.createElement("img");
+                        media.classList.add('sent_img');
+                        media.src= image_url
+                        sentMsg.appendChild(media)
+                    }
+
                     sentMsg.appendChild(p);
                     sentMsg.appendChild(span);
                     msgDiv.appendChild(sentMsg);
@@ -136,6 +146,12 @@
                     let span = document.createElement("span");
                     span.classList.add('time_date');
                     span.textContent = datetime;
+                    if(Boolean(image_url)){
+                        let media = document.createElement("img");
+                        media.classList.add('sent_img');
+                        media.src= image_url
+                        received_withd_msg.appendChild(media)
+                    }
                     received_withd_msg.appendChild(p);
                     received_withd_msg.appendChild(span);
                     received_msg.appendChild(received_withd_msg);
@@ -154,7 +170,7 @@
                         let container = document.getElementById("msg_history");
                         msgs.forEach((msg) => {
                             console.log(msg);
-                            let mDiv = buildMessage(msg.sender, msg.sender_message, msg.timestamp)
+                            let mDiv = buildMessage(msg.sender, msg.sender_message, msg.timestamp, msg.image_url)
                             container.appendChild(mDiv);
                             container.scrollTop = container.scrollHeight
                         });
@@ -210,7 +226,7 @@
                 }
                 socket.connect();
                 socket.on("connect", function() {
-                    socket.emit("user_connected", {"name": name, "email": email, "chat_session": uniqueId, "org_id": '{{org_id}}', "org_name": '{{org_name}}'});
+                    socket.emit("user_connected", {"name": name, "email": email, "chat_session": uniqueId, "org_id": '{{org_id}}', "org_name": '{{org_name}}',"file_url": ""});
                 })
                 document.getElementById("chat-container").style.display = "block";
                 document.getElementById("start-chat-container").style.display = "none";
@@ -220,7 +236,7 @@
                 let message = document.getElementById("message").value;
                 var uniqueId = localStorage.getItem('uniqueId');
                 if(Boolean(message)){
-                    socket.emit("new_message", {"name": name, "email": email, "chat_session": uniqueId, "message": message, "org_id": '{{org_id}}', "org_name": '{{org_name}}'});
+                    socket.emit("new_message", {"name": name, "email": email, "chat_session": uniqueId, "message": message, "org_id": '{{org_id}}', "org_name": '{{org_name}}', "file_url": ""});
                     document.getElementById("message").value = "";
                 }
             });
@@ -232,12 +248,39 @@
                         console.log(data)
                         let container0 = document.getElementById("msg_history");
                         let container = document.getElementById("msg_history");
-                        let mDiv = buildMessage(data["sender"], data["message"], data["timestamp"])
+                        let mDiv = buildMessage(data["sender"], data["message"], data["timestamp"], data["image_url"])
                         container.appendChild(mDiv);
                         container.scrollTop = container.scrollHeight;
                     }
                 }
             })
+
+            const upload = (file) => {
+                console.log(file);
+                const formData = new FormData();
+                formData.append('image', file);
+                const page_id = localStorage.getItem('uniqueId');
+                axios.post(baseUri + '/api_attachement/'+ page_id, formData)
+                  .then(function(response) {
+                      console.log(response.data);
+                      var fileUrl = response.data;
+                      socket.emit("new_message", {"name": name, "email": email, "chat_session": page_id, "message": "", "org_id": '{{org_id}}', "org_name": '{{org_name}}', "file_url": fileUrl});
+                  })
+                  .catch(function(error) {
+                      console.log(error.response.data);
+                      // Handle error
+                  });
+              };
+
+              const hidenFile = document.getElementById('hidenFile');
+              const imageButton = document.getElementById('sendA');
+              const onSelectFile = () => upload(hidenFile.files[0]);
+              hidenFile.addEventListener('change', onSelectFile, false);
+
+              imageButton.addEventListener('click', function(){
+                hidenFile.click();
+              });
+                
         </script>
     </body>
 </html>

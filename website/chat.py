@@ -252,8 +252,10 @@ def wp_webhook_action():
                         sender_message = None
                         sender_media_url = None
                         if "text" in messages: #key:text
+                            print("****text******")
                             sender_message = messages["text"]["body"]
                         if "image" in messages:
+                            print("****image******")
                             sender_media_id = messages["image"]["id"]
 
                         datetime_obj = datetime.fromtimestamp(int(timestamp))
@@ -270,6 +272,25 @@ def wp_webhook_action():
 
                         config = CompanyConfig.query.filter_by(phone_id=phone_id).order_by(CompanyConfig.id.desc()).first()
                         if config:
+                            headers = {
+                                "Authorization": "Bearer " + config.access_token
+                            }
+                            logging.error("****** image info ******")
+                            print(config.access_token)
+                            logging.error(sender_media_id)
+                            imgResponse = requests.get('https://graph.facebook.com/v16.0/'+ sender_media_id + '/', headers=headers)
+                            ndata = json.loads(imgResponse.text)
+                            logging.error(ndata)
+                            if imgResponse.status_code == 200:
+                                img_url = ndata["url"]
+                                logging.error(img_url)
+                                downlodResponse = requests.get(img_url, headers=headers)
+                                file_name = 'wp_' + nanoid.generate() + '_' + conv_id + '_app.jpg'
+                                f_name=os.path.join(current_app.config['UPLOAD_FOLDER'], file_name)
+                                with open(f_name, "wb") as file:
+                                    file.write(downlodResponse.content)
+                                sender_media_url = baseUrl + url_for('static', filename='uploads/' + file_name)
+
                             conv=Conversation.query.filter_by(conv_id=conv_id).first()
                             if conv is None:
                                 new_conv = Conversation(name=name, conv_id = conv_id, page_id=conv_id, type="wp", company_id = config.company_id)
@@ -281,23 +302,6 @@ def wp_webhook_action():
                                 member = Member(name="Business", mobile_phone = "Business", Conversation_id=new_conv.id)
                                 db.session.add(member)
                                 db.session.commit()
-
-                                headers = {
-                                    "Authorization": "Bearer " + config.access_token
-                                }
-                                logging.error("****** image info ******")
-                                logging.error(sender_media_id)
-                                imgResponse = requests.get('https://graph.facebook.com/v16.0/'+ sender_media_id + '/', headers=headers)
-                                ndata = json.loads(response.text)
-                                logging.error(ndata)
-                                if imgResponse.status_code == 200:
-                                    img_url = ndata["url"]
-                                    logging.error(img_url)
-                                    downlodResponse = requests.get(img_url, headers=headers)
-                                    f_name=os.path.join(current_app.config['UPLOAD_FOLDER'], 'wp_' + nanoid.generate() + '_' + conv_id + '_app.jpg')
-                                    with open(f_name, "wb") as file:
-                                        file.write(downlodResponse.content)
-                                    sender_media_url = baseUrl + f_name
 
                                 message = Message(message_id = message_id, message_type=message_type,sender=sender, sender_message=sender_message,timestamp=datetime_obj, Conversation_id=new_conv.id, Member_id=member.id,image_url=sender_media_url)
                                 db.session.add(message)
@@ -466,6 +470,7 @@ def sendmessage():
         message = data['message']
         recipient = data['recipient']
         fileUrl = data['fileUrl']
+        message_type="text"
         if type == "wp":
             msg = {}
             if fileUrl:
@@ -478,6 +483,7 @@ def sendmessage():
                         "link" : fileUrl
                     }
                 }
+                message_type = "image"
             else:
                 msg = {
                     "messaging_product": "whatsapp",
@@ -495,13 +501,13 @@ def sendmessage():
             if response.status_code == 200:
                 data = json.loads(response.text)
                 message_id = data["messages"][0]["id"]
-                messageObj = Message(message_id = message_id, message_type="text",sender="Business", sender_message=message,timestamp=timestamp, Conversation_id=conversationId, Member_id=memberId,image_url=fileUrl)
+                messageObj = Message(message_id = message_id, message_type=message_type,sender="Business", sender_message=message,timestamp=timestamp, Conversation_id=conversationId, Member_id=memberId,image_url=fileUrl)
                 db.session.add(messageObj)
                 db.session.commit()
                 new_obj = {
                     'id':messageObj.id,
                     'message_id': message_id,
-                    'message_type': "text",
+                    'message_type': message_type,
                     'sender': "Business",
                     'sender_message': message,
                     'image_url': fileUrl,
@@ -532,6 +538,7 @@ def sendmessage():
                         }
                     }
                 }
+                message_type = "image"
             else:
                 msg = {
                     "recipient": {"id": recipient},
@@ -553,13 +560,13 @@ def sendmessage():
             print(data)
             if response.status_code == 200:
                 message_id = data["message_id"]
-                messageObj = Message(message_id = message_id, message_type="text", sender="Business", sender_message=message, timestamp=timestamp, Conversation_id=conversationId, Member_id=memberId,image_url=fileUrl)
+                messageObj = Message(message_id = message_id, message_type=message_type, sender="Business", sender_message=message, timestamp=timestamp, Conversation_id=conversationId, Member_id=memberId,image_url=fileUrl)
                 db.session.add(messageObj)
                 db.session.commit()
                 new_obj = {
                     'id': messageObj.id,
                     'message_id': message_id,
-                    'message_type': "text",
+                    'message_type': message_type,
                     'sender': "Business",
                     'sender_message': message,
                     'image_url': fileUrl,
@@ -577,17 +584,21 @@ def sendmessage():
         elif type == "web":
             datetime_obj = datetime.now()
             company = Company.query.filter_by(id = current_user.company_id).first()
-            sentMessage = Message(message_id = nanoid.generate(), message_type="text",sender="Business", sender_message=message,timestamp=datetime_obj, Conversation_id=conversationId, Member_id=memberId)
+            media_url = None
+            if fileUrl:
+                media_url = fileUrl
+                message_type = "image"
+            sentMessage = Message(message_id = nanoid.generate(), message_type=message_type,sender="Business", sender_message=message,timestamp=datetime_obj, Conversation_id=conversationId, Member_id=memberId,image_url=media_url)
             db.session.add(sentMessage)
             db.session.commit()
 
             new_obj = {
                 'id': sentMessage.id,
                 'message_id': sentMessage.message_id,
-                'message_type': "text",
+                'message_type': message_type,
                 'sender': "Business",
                 'sender_message': sentMessage.sender_message,
-                'image_url': "",
+                'image_url': fileUrl,
                 'timestamp': sentMessage.timestamp,
                 'Conversation_id': sentMessage.Conversation_id,
                 'Member_id': sentMessage.Member_id
@@ -604,7 +615,8 @@ def sendmessage():
                 'timestamp': sentMessage.timestamp.strftime('%Y-%m-%d %H:%M:%S'),
                 'Conversation_id': sentMessage.Conversation_id,
                 'Member_id': sentMessage.Member_id,
-                'chat_session': page_id
+                'chat_session': page_id,
+                'image_url': fileUrl
             }
             socketio.emit("chat", msg_obj)
             resp = make_response(new_obj)
@@ -759,6 +771,7 @@ def handle_user_connected(data):
     chat_session = data['chat_session']
     org_id = data['org_id']
     org_name = data['org_name']
+    fileUrl = data['file_url']
     print('*********** user is connected************')
     print(f"User joined! {chat_session}")
     conv = Conversation.query.filter_by(conv_id=chat_session).first()
@@ -774,7 +787,14 @@ def handle_user_connected(data):
         db.session.commit()
         company = Company.query.filter_by(id = org_id).first()
         datetime_obj = datetime.now()
-        message = Message(message_id = nanoid.generate(), message_type="text",sender="Business", sender_message="Hello, How may i help you?",timestamp=datetime_obj, Conversation_id=new_conv.id, Member_id=member.id)
+
+        message_type = "text"
+        media_url = None
+        if fileUrl:
+            media_url = fileUrl
+            message_type = "image"
+
+        message = Message(message_id = nanoid.generate(), message_type=message_type,sender="Business", sender_message="Hello, How may i help you?",timestamp=datetime_obj, Conversation_id=new_conv.id, Member_id=member.id,image_url=media_url)
         db.session.add(message)
         db.session.commit()
 
@@ -790,7 +810,8 @@ def handle_user_connected(data):
             'timestamp': message.timestamp.strftime('%Y-%m-%d %H:%M:%S'),
             'Conversation_id': message.Conversation_id,
             'Member_id': message.Member_id,
-            'chat_session': chat_session
+            'chat_session': chat_session,
+            'image_url': fileUrl
         }
 
         emit("chat", msg_obj, broadcast=True)
@@ -803,13 +824,20 @@ def handle_new_message(data):
     org_id = data['org_id']
     org_name = data['org_name']
     message = data['message']
+    fileUrl = data['file_url']
     print(f"New message: {message}")
     conv=Conversation.query.filter_by(conv_id=chat_session).first()
     if conv is not None:
         datetime_obj = datetime.now()
         member = Member.query.filter(and_(Member.mobile_phone == email, Member.Conversation_id==conv.id)).first()
         if member is not None:
-            sentMessage = Message(message_id = nanoid.generate(), message_type="text",sender=email, sender_message=message,timestamp=datetime_obj, Conversation_id=conv.id, Member_id=member.id)
+            message_type = "text"
+            media_url = None
+            if fileUrl:
+                media_url = fileUrl
+                message_type = "image"
+
+            sentMessage = Message(message_id = nanoid.generate(), message_type=message_type,sender=email, sender_message=message,timestamp=datetime_obj, Conversation_id=conv.id, Member_id=member.id,image_url=media_url)
             db.session.add(sentMessage)
             db.session.commit()
 
@@ -825,7 +853,8 @@ def handle_new_message(data):
                 'timestamp': sentMessage.timestamp.strftime('%Y-%m-%d %H:%M:%S'),
                 'Conversation_id': sentMessage.Conversation_id,
                 'Member_id': sentMessage.Member_id,
-                'chat_session': chat_session
+                'chat_session': chat_session,
+                'image_url': fileUrl
             }
             emit("chat", msg_obj, broadcast=True)
 
