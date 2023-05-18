@@ -185,7 +185,6 @@
             }
 
             document.addEventListener("DOMContentLoaded", function(event) {
-                localStorage.clear();
                 var savedDate = localStorage.getItem('currentDate');
                 if(savedDate){
                     var parsedDate = new Date(savedDate);
@@ -212,7 +211,6 @@
                         document.getElementById("start-chat-container").style.display = "none";
                     }
                 }
-                
               });
 
 
