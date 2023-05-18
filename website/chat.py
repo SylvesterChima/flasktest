@@ -166,7 +166,7 @@ def webhook_action():
                             last_message = Message.query.filter(and_(Message.sender == sender_id, Message.Conversation_id==conv.id)).order_by(Message.id.desc()).first()
                             member = Member.query.filter(and_(Member.mobile_phone == sender_id, Member.Conversation_id==conv.id)).first()
                             if member:
-                                message = Message(message_id = message_id, message_type="text",sender=sender_id, sender_message=sender_message,timestamp=datetime_obj, Conversation_id=conv.id, Member_id=member.id,image_url=sender_AttachmentUrl)
+                                message = Message(message_id = message_id, message_type=sender_messageType,sender=sender_id, sender_message=sender_message,timestamp=datetime_obj, Conversation_id=conv.id, Member_id=member.id,image_url=sender_AttachmentUrl)
                                 db.session.add(message)
                                 db.session.commit()
 
@@ -247,7 +247,15 @@ def wp_webhook_action():
                         logging.error(messages)
                         message_type = messages["type"]
                         sender = messages["from"]
-                        sender_message = messages["text"]["body"]
+
+                        sender_media_id = None
+                        sender_message = None
+                        sender_media_url = None
+                        if "text" in messages: #key:text
+                            sender_message = messages["text"]["body"]
+                        if "image" in messages:
+                            sender_media_id = messages["image"]["id"]
+
                         datetime_obj = datetime.fromtimestamp(int(timestamp))
 
                         templateMsg = {
@@ -274,7 +282,21 @@ def wp_webhook_action():
                                 db.session.add(member)
                                 db.session.commit()
 
-                                message = Message(message_id = message_id, message_type=message_type,sender=sender, sender_message=sender_message,timestamp=datetime_obj, Conversation_id=new_conv.id, Member_id=member.id)
+                                headers = {
+                                    "Authorization": "Bearer " + config.access_token
+                                }
+                                imgResponse = requests.get('https://graph.facebook.com/v16.0/'+ sender_media_id + '/', headers=headers)
+                                if imgResponse.status_code == 200:
+                                    data = json.loads(response.text)
+                                    img_url = data["url"]
+
+                                    downlodResponse = requests.get(img_url, headers=headers)
+                                    f_name=os.path.join(current_app.config['UPLOAD_FOLDER'], 'wp_' + nanoid.generate() + '_' + conv_id + '_app.jpg')
+                                    with open(f_name, "wb") as file:
+                                        file.write(downlodResponse.content)
+                                    sender_media_url = baseUrl + f_name
+
+                                message = Message(message_id = message_id, message_type=message_type,sender=sender, sender_message=sender_message,timestamp=datetime_obj, Conversation_id=new_conv.id, Member_id=member.id,image_url=sender_media_url)
                                 db.session.add(message)
                                 db.session.commit()
                                 response = requests.post('https://graph.facebook.com/v16.0/'+ config.phone_id +'/messages?access_token=' + config.access_token, json=templateMsg)
@@ -282,7 +304,7 @@ def wp_webhook_action():
                                 last_message = Message.query.filter(and_(Message.sender == sender, Message.Conversation_id==conv.id)).order_by(Message.id.desc()).first()
                                 member = Member.query.filter(and_(Member.mobile_phone == sender, Member.Conversation_id==conv.id)).first()
                                 if member:
-                                    message = Message(message_id = message_id, message_type=message_type,sender=sender, sender_message=sender_message,timestamp=datetime_obj, Conversation_id=conv.id, Member_id=member.id)
+                                    message = Message(message_id = message_id, message_type=message_type,sender=sender, sender_message=sender_message,timestamp=datetime_obj, Conversation_id=conv.id, Member_id=member.id,image_url=sender_media_url)
                                     db.session.add(message)
                                     db.session.commit()
 
