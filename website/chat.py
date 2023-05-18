@@ -497,7 +497,7 @@ def sendmessage():
                     }
                 }
             timestamp = datetime.utcnow()
-            config = CompanyConfig.query.filter_by(phone_id=recipient).order_by(CompanyConfig.id.desc()).first()
+            config = CompanyConfig.query.filter_by(phone_id=page_id).order_by(CompanyConfig.id.desc()).first()
             response = requests.post('https://graph.facebook.com/v16.0/' + config.phone_id + '/messages?access_token=' + config.access_token, json=msg)
             if response.status_code == 200:
                 data = json.loads(response.text)
