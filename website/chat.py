@@ -272,24 +272,25 @@ def wp_webhook_action():
 
                         config = CompanyConfig.query.filter_by(phone_id=phone_id).order_by(CompanyConfig.id.desc()).first()
                         if config:
-                            headers = {
-                                "Authorization": "Bearer " + config.access_token
-                            }
-                            logging.error("****** image info ******")
-                            print(config.access_token)
-                            logging.error(sender_media_id)
-                            imgResponse = requests.get('https://graph.facebook.com/v16.0/'+ sender_media_id + '/', headers=headers)
-                            ndata = json.loads(imgResponse.text)
-                            logging.error(ndata)
-                            if imgResponse.status_code == 200:
-                                img_url = ndata["url"]
-                                logging.error(img_url)
-                                downlodResponse = requests.get(img_url, headers=headers)
-                                file_name = 'wp_' + nanoid.generate() + '_' + conv_id + '_app.jpg'
-                                f_name=os.path.join(current_app.config['UPLOAD_FOLDER'], file_name)
-                                with open(f_name, "wb") as file:
-                                    file.write(downlodResponse.content)
-                                sender_media_url = baseUrl + url_for('static', filename='uploads/' + file_name)
+                            if sender_media_id:
+                                headers = {
+                                    "Authorization": "Bearer " + config.access_token
+                                }
+                                logging.error("****** image info ******")
+                                print(config.access_token)
+                                logging.error(sender_media_id)
+                                imgResponse = requests.get('https://graph.facebook.com/v16.0/'+ sender_media_id + '/', headers=headers)
+                                ndata = json.loads(imgResponse.text)
+                                logging.error(ndata)
+                                if imgResponse.status_code == 200:
+                                    img_url = ndata["url"]
+                                    logging.error(img_url)
+                                    downlodResponse = requests.get(img_url, headers=headers)
+                                    file_name = 'wp_' + nanoid.generate() + '_' + conv_id + '_app.jpg'
+                                    f_name=os.path.join(current_app.config['UPLOAD_FOLDER'], file_name)
+                                    with open(f_name, "wb") as file:
+                                        file.write(downlodResponse.content)
+                                    sender_media_url = baseUrl + url_for('static', filename='uploads/' + file_name)
 
                             conv=Conversation.query.filter_by(conv_id=conv_id).first()
                             if conv is None:
