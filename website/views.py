@@ -51,7 +51,7 @@ def test_initialize_split_transaction():
 
 @views.route('/paymentcallback', methods=['GET'])
 def payment_callback():
-    ref = request.args.get('ref')
+    ref = request.args.get('reference')
     #response = Transaction.verify(ref);
     print(ref)
 
