@@ -53,7 +53,7 @@ def test_initialize_split_transaction():
 def payment_callback():
     ref = request.args.get('reference')
     #response = Transaction.verify(ref);
-    print(ref)
+    return ref
 
 
 @views.route('/')
