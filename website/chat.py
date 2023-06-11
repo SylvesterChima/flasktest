@@ -501,6 +501,9 @@ def sendmessage():
             timestamp = datetime.utcnow()
             config = CompanyConfig.query.filter_by(phone_id=page_id).order_by(CompanyConfig.id.desc()).first()
             response = requests.post('https://graph.facebook.com/v16.0/' + config.phone_id + '/messages?access_token=' + config.access_token, json=msg)
+            wpdata = json.loads(response.text)
+            logging.info("****** whatsapp send response mjson ******")
+            logging.info(wpdata)
             if response.status_code == 200:
                 data = json.loads(response.text)
                 message_id = data["messages"][0]["id"]

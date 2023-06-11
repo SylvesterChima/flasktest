@@ -11,46 +11,87 @@ function getPosition(position) {
     };
 }
 
-function initialise(orgId) {
+function initialise(orgId,bgColor, welcomeText) {
     createStyles();
     const container = document.createElement('div');
     container.style.position = 'fixed';
+    container.classList.add('chat-wrapper')
     Object.keys(position)
         .forEach(key => container.style[key] = position[key]);
     document.body.appendChild(container);
 
     const buttonContainer = document.createElement('div');
     buttonContainer.classList.add('button-container')
+    buttonContainer.style.backgroundColor = bgColor;
+
+    const contextDiv = document.createElement('div');
+    contextDiv.classList.add('context')
+
+    const contextConDiv = document.createElement('div');
+    contextConDiv.classList.add('conDiv');
+
+    let p = document.createElement("p");
+    p.textContent = welcomeText;
+
+    const contextConImg = document.createElement('img');
+    contextConImg.classList.add('contextConImg');
+    contextConImg.src = 'http://127.0.0.1:5000/static/mplay.png';
+
+    const contextConClose = document.createElement('img');
+    contextConClose.classList.add('contextConClose');
+    contextConClose.src = 'http://127.0.0.1:5000/static/tclose.png';
+
+    contextConDiv.appendChild(contextConImg);
+    contextConDiv.appendChild(contextConClose);
+    contextConDiv.appendChild(p);
+    contextDiv.appendChild(contextConDiv);
 
     const chatIcon = document.createElement('img');
-    chatIcon.src = 'https://troologdemo.azurewebsites.net/static/uploads/chat.svg';
+    chatIcon.src = 'http://127.0.0.1:5000/static/trologo.svg';
     chatIcon.classList.add('icon');
     this.chatIcon = chatIcon;
 
     const closeIcon = document.createElement('img');
-    closeIcon.src = 'https://troologdemo.azurewebsites.net/static/uploads/cross.svg';
+    closeIcon.src = 'http://127.0.0.1:5000/static/uploads/cross.svg';
     closeIcon.classList.add('icon', 'hidden');
     this.closeIcon = closeIcon;
 
     buttonContainer.appendChild(this.chatIcon);
     buttonContainer.appendChild(this.closeIcon);
+    buttonContainer.appendChild(contextDiv);
 
     const messageContainer = document.createElement('div');
     messageContainer.classList.add('hidden', 'message-container');
     messageContainer.classList.add('mchat');
 
-    buttonContainer.addEventListener('click', function(){
-        open = !open;
-        if (open) {
-            chatIcon.classList.add('hidden');
-            closeIcon.classList.remove('hidden');
-            messageContainer.classList.remove('hidden');
-        } else {
-            //createMessageContainerContent(messageContainer);
-            chatIcon.classList.remove('hidden');
-            closeIcon.classList.add('hidden');
-            messageContainer.classList.add('hidden');
-        }
+    chatIcon.addEventListener('click', function(){
+        chatIcon.classList.add('hidden');
+        closeIcon.classList.remove('hidden');
+        messageContainer.classList.remove('hidden');
+        contextDiv.classList.add('hideContext');
+        // open = !open;
+        // if (open) {
+        //     chatIcon.classList.add('hidden');
+        //     closeIcon.classList.remove('hidden');
+        //     messageContainer.classList.remove('hidden');
+        //     contextDiv.classList.add('hideConext');
+        // } else {
+        //     //createMessageContainerContent(messageContainer);
+        //     chatIcon.classList.remove('hidden');
+        //     closeIcon.classList.add('hidden');
+        //     messageContainer.classList.add('hidden');
+        // }
+    });
+
+    closeIcon.addEventListener('click', function(){
+        chatIcon.classList.remove('hidden');
+        closeIcon.classList.add('hidden');
+        messageContainer.classList.add('hidden');
+        contextDiv.classList.remove('hideContext');
+    });
+
+    contextConClose.addEventListener('click', function(){
+        contextDiv.classList.add('hideContext');
     });
 
     this.createMessageIframe(messageContainer, orgId);
@@ -62,7 +103,7 @@ function initialise(orgId) {
 
 function createMessageIframe(messageContainer, orgId) {
     const iframe = document.createElement('iframe');
-    iframe.src = 'https://troologdemo.azurewebsites.net/minichat/' + orgId
+    iframe.src = 'http://127.0.0.1:5000/minichat/' + orgId
     messageContainer.appendChild(iframe);
 
 }
@@ -101,6 +142,9 @@ function createMessageContainerContent(messageContainer) {
 function createStyles() {
     const styleTag = document.createElement('style');
     styleTag.innerHTML = `
+        .chat-wrapper{
+            z-index: 2147483647;
+        }
         .mchat{
             position: absolute;
             bottom: 0;
@@ -111,23 +155,60 @@ function createStyles() {
         .mchat iframe{
             height: 100%;
             width: 100%;
+            border: none;
         }
         .icon {
             cursor: pointer;
-            width: 70%;
+            width: 60%;
             position: absolute;
-            top: 9px;
-            left: 9px;
+            top: 12px;
+            left: 12px;
             transition: transform .3s ease;
+        }
+        .hideContext {
+            display: none;
         }
         .hidden {
             transform: scale(0);
         }
         .button-container {
-            background-color: #007bff;
             width: 60px;
             height: 60px;
             border-radius: 50%;
+            position: relative;
+        }
+        .button-container .context {
+            position: absolute;
+            top: -50px;
+            background-color: transparent;
+            height: 80px;
+            width: 250px;
+            left:-270px;
+            color: white;
+        }
+        .button-container .context .conDiv {
+            position: relative;
+            background-color: #ffffff;
+            color: #000000;
+            width: 235px;
+            border-radius: 10px;
+            height: 100%;
+            padding: 10px;
+        }
+        .button-container .context .conDiv .contextConImg {
+            position: absolute;
+            bottom: -5px;
+            right:-23px;
+            width: 40px;
+            height: 40px;
+        }
+        .button-container .context .conDiv .contextConClose {
+            position: absolute;
+            top: -18px;
+            right:-18px;
+            width: 30px;
+            height: 30px;
+            cursor: pointer;
         }
         .message-container {
             box-shadow: 0 0 18px 8px rgba(0, 0, 0, 0.1), 0 0 32px 32px rgba(0, 0, 0, 0.08);
@@ -138,7 +219,13 @@ function createStyles() {
             position: absolute;
             transition: max-height .2s ease;
             font-family: Helvetica, Arial ,sans-serif;
+            z-index: 10000;
         }
+        @media screen and (max-width: 768px) {
+            .message-container {
+                right: -40px;
+            }
+          }
         .message-container.hidden {
             max-height: 0px;
         }

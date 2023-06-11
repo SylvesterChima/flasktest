@@ -1,0 +1,58 @@
+{% extends "user_layout.html" %}
+{% block style %}
+<style>
+    section {
+        padding-top: 4rem;
+        padding-bottom: 5rem;
+        background-color: #f1f4fa;
+    }
+    
+</style>
+{% endblock %}
+
+
+{% block content %}
+<section>
+    <div class="container">
+        <div class="row">
+            <div class="col">
+                <select name="bgColor" id="bgColor">
+                    <option value="#fff000">Yello</option>
+                    <option value="#000000">Black</option>
+                </select>
+                <textarea name="welcomeText" id="welcomeText" rows="3">Welcome to Trolog, We are happy to help!</textarea>
+            </div>
+            <div class="col">
+                <pre>
+                    const widgetScriptUrl = 'http://127.0.0.1:5000/static/minichat.js';
+                    const script = document.createElement("script");
+                    script.src = widgetScriptUrl;
+                    script.async = true;
+                    script.onload = () => {
+                        initialise({{company.id}},<span id="bgColorValue"></span>, <span id="welcomeTextValue"></span>);
+                    };
+                    document.head.appendChild(script);
+                </pre>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const bg = document.getElementById('bgColor');
+        bg.addEventListener('change', function(){
+            console.log("helloooo" + bg.value);
+            document.getElementById('bgColorValue').textContent =bg.value;
+        });
+
+        const welcome = document.getElementById('welcomeText');
+        welcome.addEventListener('input', function(){
+            console.log("helloooo" + welcome.value);
+            console.log("helloooo" + welcome.innerText);
+            document.getElementById('welcomeTextValue').textContent = welcome.value;
+        });
+    </script>
+</section>
+
+
+<script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+{% endblock %}

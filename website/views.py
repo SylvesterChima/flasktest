@@ -51,8 +51,9 @@ def test_initialize_split_transaction():
 
 @views.route('/paymentcallback', methods=['GET'])
 def payment_callback():
-    response = Transaction.verify(reference='reference')
-    print(response)
+    ref = request.args.get('ref')
+    #response = Transaction.verify(ref);
+    print(ref)
 
 
 @views.route('/')
@@ -189,3 +190,8 @@ def fbconfiguration():
     resp = make_response(new_obj)
     resp.status_code = 200
     return resp
+
+@views.route('/test')
+def test():
+    company = Company.query.get(current_user.company_id)
+    return render_template('test.html', user=current_user, company = company)

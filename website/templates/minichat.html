@@ -8,17 +8,69 @@
         <link href="//maxcdn.bootstrapcdn.com/bootstrap/4.1.1/css/bootstrap.min.css" rel="stylesheet" id="bootstrap-css">
         <script src="//maxcdn.bootstrapcdn.com/bootstrap/4.1.1/js/bootstrap.min.js"></script>
         <script src="//cdnjs.cloudflare.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
-        <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.8.2/css/all.css">
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
         <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.0.1/socket.io.js" integrity="sha512-q/dWJ3kcmjBLU4Qc47E4A9kTB4m3wuTY7vkFJDTZKjTs8jhyGQnaUrxa0Ytd0ssMZhbNua9hE+E7Qv1j+DyZwA==" crossorigin="anonymous"></script>
         <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
         <link rel="stylesheet" href="/static/minichat.css" />
     </head>
-    <body>
+    <body id="body">
+        <section id="suppor-agent">
+            <div class="container">
+                <div class="suppor-agent">
+                    <img src="{{ url_for('static', filename='chatlogo.png') }}" alt="">
+                    <div class="first">
+                        <p><i class="fas fa-clock"></i> Our average response time is 21minutes</p>
+                        <p class="p"><i class="fas fa-user-clock"></i> 2 support agents active</p>
+                    </div>
+                    <div class="second">
+                        <p>Hello!</p>
+                        <p>How can I help you today?</p>
+                    </div>
+                    <div class="third" id="third">
+                        <div>
+                            <b>Chat Support Agent</b>
+                            <p>Get instant support and response to inquiries</p>
+                            <span><i class="fas fa-arrow-right-long"></i></span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="powered-by">
+                <i class="fas fa-bolt"></i> Powered by Troolog
+            </div>
+        </section>
+        <section id="chat-options">
+            <div class="container">
+                <div class="chat-options">
+                    <button id="btn-back"><i class="fas fa-arrow-left"></i></button>
+                    <div class="first">
+                        <b>How do you want to engage support?</b>
+                    </div>
+                    <div class="chat-btn" id="chat-btn-web">
+                        <i class="fas fa-comments web"></i> &nbsp;&nbsp;<span>Chat here on webchat</span>
+                    </div>
+                    <div class="chat-btn" id="chat-btn-whatsapp">
+                        <i class="fab fa-whatsapp whatsapp"></i> &nbsp;&nbsp;<span>Chat on WhatsApp</span>
+                    </div>
+                    <div class="chat-btn" id="chat-btn-facebook">
+                        <i class="fab fa-facebook-messenger facebook"></i> &nbsp;&nbsp;<span>Chat on Facebook DM</span>
+                    </div>
+                </div>
+                <div class="powered-by">
+                    <i class="fas fa-bolt"></i> Powered by Troolog
+                </div>
+            </div>
+        </section>
         <section id="start-chat-container">
             <div class="start-chat">
                 <div class="container">
-                    <h3>Now Chatting</h3>
-                    <p>Hi, I am around click 'Start Chat' to contact me.</p>
+                    <div class="start-chat-container">
+                        <!-- <button id="btn-back"><i class="fas fa-arrow-left"></i></button> -->
+                        <div class="firstt">
+                            <h3>Now Chatting</h3>
+                            <p>Hi, I am around click 'Start Chat' to contact me.</p>
+                        </div>
+                    </div>
                 </div>
             </div>
             <div class="container mt-5">
@@ -26,10 +78,13 @@
                     <input type="text" class="form-control" id="name" placeholder="type your name here">
                 </div>
                 <div class="mb-3">
-                    <input type="email" class="form-control" id="email" placeholder="name@example.com">
+                    <input type="email" class="form-control" id="email" placeholder="enter email or phone number">
                 </div>
                 <div class="mt-5">
                     <button type="button" class="btn btn-primary btn-lg btn-block" id="startchat">Start Chat</button>
+                </div>
+                <div class="mt-2">
+                    <button type="button" class="btn btn-outline-secondary btn-lg btn-block" id="cancelchat">Cancel</button>
                 </div>
             </div>
         </section>
@@ -38,7 +93,7 @@
                 <div class="container">
                     <ul class="msg-box list-inline text-left d-inline-block float-left">
                         <li> 
-                            <img src="https://i.ibb.co/fCzfFJw/person.jpg" alt="" width="40px"> 
+                            <img src="{{ url_for('static', filename='trologo.svg') }}" alt="" width="40px"> 
                             <span> {{org_name}} </span>
                             <small id="mTest" class="timee"> 12:45 Pm </small> 
                         </li> 
@@ -48,42 +103,26 @@
             <div class="container">
                 <div class="row">
                     <div class="col-md-12">
-                    <div class="message-box">
-                            <div class="msg_history" id="msg_history">
-                                <!-- <div class="incoming_msg">
-                                    <div class="incoming_msg_img"> 
-                                        <img src="https://ptetutorials.com/images/user-profile.png" alt="sunil"> 
-                                    </div>
-                                    <div class="received_msg">
-                                        <div class="received_withd_msg">
-                                            <p>Hi, How are you ?</p>
-                                            <span class="time_date"> 11:01 AM    |    June 9</span>
-                                        </div>
-                                    </div>
-                                </div> -->
-                                <!-- <div class="outgoing_msg">
-                                    <div class="sent_msg">
-                                        <p>Hello, i am fine thankyou, what about you ?</p>
-                                    </div>
-                                </div> -->
-                            </div>
+                        <div class="message-box">
+                            <div class="msg_history" id="msg_history"></div>
                         </div>
                     </div>
                 </div>
             </div>
             <div class="send-message">
-                <div class="container">
-                    <form action="" method="">
-                        <input type="file" hidden id="hidenFile" accept=".png, .jpg, .jpeg, .gif">
-                        <textarea cols="10" rows="2" class="form-control" id="message" placeholder="Type your message here ..."> </textarea>
-                        <ul class="list-inline">
+                <form action="" method="">
+                    <input type="file" hidden id="hidenFile" accept=".png, .jpg, .jpeg, .gif">
+                    <textarea cols="10" rows="2" id="message" class="form-control" placeholder="Type your message here ..."></textarea>
+                    <ul class="list-inline">
                         <li id="sendA"> <i class="fas fa-paperclip"></i> </li>
                         <li id="sendM"> <i class="fas fa-paper-plane"></i> </li>
-                        </ul>
-                    </form>
-                </div>
+                    </ul>
+                </form>
             </div>
         </section>
+
+
+
         <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js"></script>
         <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js"></script>
         <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js" ></script>
@@ -91,11 +130,29 @@
         <script type="text/javascript" charset="utf-8">
             var name = "";
             var email = "";
-            var baseUri = "https://troologdemo.azurewebsites.net"; //"http://127.0.0.1:5000";//"https://troologdemo.azurewebsites.net";
+            var baseUri = "http://127.0.0.1:5000"; //"http://127.0.0.1:5000";//"https://troologdemo.azurewebsites.net";
 
             function validateEmail(email) {
                 const re = /\S+@\S+\.\S+/;
                 return re.test(email);
+            }
+
+            function hideAll(){
+                document.getElementById("chat-container").style.display = "none";
+                document.getElementById("start-chat-container").style.display = "none";
+                document.getElementById("suppor-agent").style.display = "none";
+                document.getElementById("chat-options").style.display = "none";
+            }
+
+            function openWhatsApp(chatId) {
+                var url = "https://wa.me/";
+                url += chatId;
+                window.open(url);
+            }
+            function openFacebookMessenger(chatId) {
+                var url = "https://www.facebook.com/messages/t/"
+                url += chatId;
+                window.open(url);
             }
 
             // Generate a unique ID
@@ -140,7 +197,7 @@
                     let incoming_msg_img = document.createElement("div");
                     incoming_msg_img.classList.add('incoming_msg_img');
                     let img = document.createElement("img");
-                    img.src="https://ptetutorials.com/images/user-profile.png"
+                    img.src="{{ url_for('static', filename='trologo.svg') }}"
                     let received_msg = document.createElement("div");
                     received_msg.classList.add('received_msg');
                     let received_withd_msg = document.createElement("div");
@@ -196,7 +253,9 @@
 
             document.addEventListener("DOMContentLoaded", function(event) {
                 var savedDate = localStorage.getItem('currentDate');
+                localStorage.clear();
                 if(savedDate){
+                    console.log("saveddata")
                     var parsedDate = new Date(savedDate);
                     var currentDate = new Date();
                     var diffInMilliseconds = Math.abs(currentDate - parsedDate);
@@ -204,22 +263,36 @@
                     console.log("diffInDays")
                     console.log(diffInDays)
                     if(diffInDays > 1){
+                        console.log("cleardata")
                         localStorage.clear();
                     }
-
                     var uniqueId = localStorage.getItem('uniqueId');
                     email = localStorage.getItem('savedEmail');
                     name = localStorage.getItem('savedName');
                     if (uniqueId && email && name) {
+                        console.log("load data")
                         console.log(email)
                         LoadMessages(uniqueId);
                         socket.connect();
                         socket.on("connect", function() {
                             socket.emit("user_connected", {"name": name, "email": email, "chat_session": uniqueId, "org_id": '{{org_id}}', "org_name": '{{org_name}}'});
                         })
+                        hideAll();
+                        document.getElementById("body").style.background = "#ffffff";
                         document.getElementById("chat-container").style.display = "block";
-                        document.getElementById("start-chat-container").style.display = "none";
                     }
+                    else{
+                        console.log("start data")
+                        hideAll();
+                        document.getElementById("body").style.background = "#007bff";
+                        document.getElementById("suppor-agent").style.display = "block";
+                    }
+                }
+                else{
+                    console.log("no saveddata")
+                    hideAll();
+                    document.getElementById("body").style.background = "#007bff";
+                    document.getElementById("suppor-agent").style.display = "block";
                 }
               });
 
@@ -251,8 +324,9 @@
                 socket.on("connect", function() {
                     socket.emit("user_connected", {"name": name, "email": email, "chat_session": uniqueId, "org_id": '{{org_id}}', "org_name": '{{org_name}}',"file_url": ""});
                 })
+                hideAll();
+                document.getElementById("body").style.background = "#ffffff";
                 document.getElementById("chat-container").style.display = "block";
-                document.getElementById("start-chat-container").style.display = "none";
             })
 
             document.getElementById("sendM").addEventListener("click", function(){
@@ -295,15 +369,41 @@
                   });
               };
 
-              const hidenFile = document.getElementById('hidenFile');
-              const imageButton = document.getElementById('sendA');
-              const onSelectFile = () => upload(hidenFile.files[0]);
-              hidenFile.addEventListener('change', onSelectFile, false);
+            const hidenFile = document.getElementById('hidenFile');
+            const imageButton = document.getElementById('sendA');
+            const onSelectFile = () => upload(hidenFile.files[0]);
+            hidenFile.addEventListener('change', onSelectFile, false);
 
-              imageButton.addEventListener('click', function(){
+            imageButton.addEventListener('click', function(){
                 hidenFile.click();
-              });
-                
+            });
+            document.getElementById("third").addEventListener('click', function(){
+                hideAll();
+                document.getElementById("body").style.background = "#ffffff";
+                document.getElementById("chat-options").style.display = "block";
+            });
+            document.getElementById("btn-back").addEventListener('click', function(){
+                hideAll();
+                document.getElementById("body").style.background = "#007bff";
+                document.getElementById("suppor-agent").style.display = "block";
+            });
+            document.getElementById("chat-btn-web").addEventListener('click', function(){
+                hideAll();
+                document.getElementById("body").style.background = "#ffffff";
+                document.getElementById("start-chat-container").style.display = "block";
+            });
+            document.getElementById("chat-btn-whatsapp").addEventListener('click', function(){
+                openWhatsApp("+15550493086")
+            });
+            document.getElementById("chat-btn-facebook").addEventListener('click', function(){
+                openFacebookMessenger("108409538867050")
+            });
+            document.getElementById("cancelchat").addEventListener('click', function(){
+                hideAll();
+                document.getElementById("body").style.background = "#ffffff";
+                document.getElementById("chat-options").style.display = "block";
+            });
+
         </script>
     </body>
 </html>
