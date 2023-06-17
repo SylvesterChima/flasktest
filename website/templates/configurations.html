@@ -88,7 +88,7 @@
                     </div>
                 </div>
             </a>
-            <div class="col-lg-6 mbr-col-md-10">
+            <a class="col-lg-6 mbr-col-md-10" href="#" id="instalogin" onclick="instaLogin()">
                 <div class="wrap">
                     <div class="ico-wrap">
                         <span class="mbr-iconfont fa-globe far"></span>
@@ -142,7 +142,7 @@
                 } else {
                     FB.login(function(response) {
                         console.log(response);
-                        statusChangeCallback(response);
+                        statusChangeCallback(response, "fb");
                     },
                     {
                         config_id: '{{configId}}'
@@ -152,12 +152,22 @@
             });
         }
 
+        function instaLogin() {
+            FB.login(function(response) {
+                console.log(response);
+                statusChangeCallback(response, "insta");
+                },
+                {
+                    config_id: '467266975547280'
+                }
+            );
+        }
 
-        function statusChangeCallback(response) {  // Called with the results from FB.getLoginStatus().
+        function statusChangeCallback(response, mtype) {  // Called with the results from FB.getLoginStatus().
             console.log('statusChangeCallback');
             console.log(response);                   // The current login status of the person.
             if (response.status === 'connected') {
-                ConfigureApp2(response.authResponse.accessToken)
+                ConfigureApp2(response.authResponse.accessToken, mtype)
                   //ConfigureApp();
             } else {                                 // Not logged into your webpage or we are unable to tell.
               document.getElementById('status').innerHTML = 'Please log ' +
@@ -165,14 +175,14 @@
             }
         }
 
-        function ConfigureApp2(user_access_token) {
+        function ConfigureApp2(user_access_token, mtype) {
             axios.get("https://graph.facebook.com/v16.0/oauth/access_token?grant_type=fb_exchange_token&client_id={{app_id}}&client_secret={{app_secret}}&fb_exchange_token=" + user_access_token)
             .then(function (response) {
                 console.log(response.data);
                 const long_live_access_token = response.data.access_token;
                 FB.api('/me/accounts','GET',{"fields":"name,access_token,id"},function(response) {
                     axios.post('https://troologdemo.azurewebsites.net/fbconfiguration', {
-                        type: "fb",
+                        type: mtype,
                         userId: '{{userId}}',
                         llat: long_live_access_token,
                         data: response.data
