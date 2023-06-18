@@ -191,35 +191,42 @@ def fbconfiguration():
     resp.status_code = 200
     return resp
 
-@views.route('/instaconfiguration', methods=['POST'])
+@views.route('/instaconfiguration', methods=['GET'])
 def instaconfiguration():
-    data = request.get_json()
-    userId = data['userId']
-    user = User.query.get(userId)
-    pages = data['data']
-    type = data['type']
-    llat = data['llat']
-    for page in pages:
-        response = requests.get('https://graph.facebook.com/'+ page['id'] +'?fields=access_token&access_token=' + llat)
-        pData = json.loads(response.text)
-        logging.info("****** permanent access token mjson ******")
-        logging.info(pData)
-        if response.status_code == 200:
-            config = CompanyConfig(access_token=pData['access_token'], page_id=page['id'],type=type, page_name=page['name'], company_id=user.company_id)
-            db.session.add(config)
-            db.session.commit()
+    a_token = request.args.get('long_lived_token')
+    error_reason = request.args.get('error_reason')
+    if error_reason:
+        return error_reason
+    else:
+        return a_token
 
-            r = requests.post('https://graph.facebook.com/'+ page['id'] + '/subscribed_apps?subscribed_fields=messages,message_reads,message_reactions,messaging_postbacks,message_deliveries&access_token='+ pData['access_token'])
-            data1 = json.loads(r.text)
-            logging.info("****** subscribed_apps sent mjson ******")
-            logging.info(data1)
 
-    new_obj = {
-        'message': "Added successful"
-    }
-    resp = make_response(new_obj)
-    resp.status_code = 200
-    return resp
+    # userId = data['userId']
+    # user = User.query.get(userId)
+    # pages = data['data']
+    # type = data['type']
+    # llat = data['llat']
+    # for page in pages:
+    #     response = requests.get('https://graph.facebook.com/'+ page['id'] +'?fields=access_token&access_token=' + llat)
+    #     pData = json.loads(response.text)
+    #     logging.info("****** permanent access token mjson ******")
+    #     logging.info(pData)
+    #     if response.status_code == 200:
+    #         config = CompanyConfig(access_token=pData['access_token'], page_id=page['id'],type=type, page_name=page['name'], company_id=user.company_id)
+    #         db.session.add(config)
+    #         db.session.commit()
+
+    #         r = requests.post('https://graph.facebook.com/'+ page['id'] + '/subscribed_apps?subscribed_fields=messages,message_reads,message_reactions,messaging_postbacks,message_deliveries&access_token='+ pData['access_token'])
+    #         data1 = json.loads(r.text)
+    #         logging.info("****** subscribed_apps sent mjson ******")
+    #         logging.info(data1)
+
+    # new_obj = {
+    #     'message': "Added successful"
+    # }
+    # resp = make_response(new_obj)
+    # resp.status_code = 200
+    # return resp
 
 @views.route('/test')
 def test():
