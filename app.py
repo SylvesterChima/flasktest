@@ -5,6 +5,9 @@ from flask import render_template
 from flask_login import login_user, login_required, logout_user, current_user
 import os
 from flask_cors import CORS
+#from flask_ngrok import  run_with_ngrok
+
+
 
 app = create_app()
 CORS(app)
@@ -16,6 +19,8 @@ app.config['MAIL_USE_TLS'] = False
 app.config['MAIL_USE_SSL'] = True
 mail = Mail(app)
 GoogleMaps(app, key="AIzaSyD0yxVcc3_gCrJRaW-GbiE7FDVxJ_H4MkU")
+
+#run_with_ngrok()
 
 
 

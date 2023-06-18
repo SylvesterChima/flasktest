@@ -30,8 +30,8 @@ def create_app():
     #app.config["OAUTHLIB_INSECURE_TRANSPORT"] = "true"
     if ENV == 'dev':
         #app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql://postgres:admin@localhost/demodata'
-        app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql://eszo:standup12$@esco-dev-server.postgres.database.azure.com/troolog_dev?sslmode=require'
-        #app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///market.db'
+        #app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql://eszo:standup12$@esco-dev-server.postgres.database.azure.com/troolog_dev?sslmode=require'
+        app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql://lidsjeqy:DoT6HOej5Uuk-c_fuXX07ingAxGMyG8P@tyke.db.elephantsql.com/lidsjeqy'
     else:
         #app.config['SQLALCHEMY_DATABASE_URI'] = 'mssql+pyodbc://dflask:@Standup12@dflask-server.database.windows.net/dflask_data?driver=ODBC+Driver+17+for+SQL+Server'
         #app.config['SQLALCHEMY_DATABASE_URI'] = "mssql+pyodbc:///?odbc_connect=%s" % uri
