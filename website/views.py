@@ -194,8 +194,13 @@ def fbconfiguration():
 
 @views.route('/instaconfiguration', methods=['GET'])
 def instaconfiguration():
-    a_token = request.args.get('long_lived_token')
-    error_reason = request.args.get('error_reason')
+    params = dict(request.args)
+    a_token = None
+    if 'long_lived_token' in params:
+        a_token = params['long_lived_token']
+    error_reason = None
+    if 'error_reason' in params:
+        error_reason = params['error_reason']
     user = User.query.get(current_user.id)
     if error_reason:
         logging.info(error_reason)

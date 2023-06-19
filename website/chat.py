@@ -194,6 +194,7 @@ def insta_webhook_verify():
 def insta_webhook_action():
     try:
         mjson = request.get_json()
+        print(mjson)
         logging.info("****** insta mjson ******")
         logging.info(mjson)
         logging.info("****** end insta mjson ******")
