@@ -140,7 +140,8 @@ def configurations():
     app_secret = os.getenv('FACEBOOK_OAUTH_CLIENT_SECRET')
     user = User.query.get(current_user.id)
     configs = CompanyConfig.query.filter_by(company_id = user.company_id).all()
-    return render_template('configurations.html', configs=configs, configId=configId,userId=current_user.id, app_id=app_id, app_secret=app_secret )
+    insta_login = "https://www.facebook.com/v16.0/dialog/oauth?client_id=" + app_id + "&display=page&extras={\"setup\":{\"channel\":\"IG_API_ONBOARDING\"}}&redirect_uri=https://troolog.onrender.com/instaconfiguration/&response_type=token&scope=instagram_basic,instagram_manage_messages,pages_manage_metadata"
+    return render_template('configurations.html', configs=configs, configId=configId,userId=current_user.id, app_id=app_id, app_secret=app_secret,insta_login = insta_login )
 
 @views.route('/wpconfiguration', methods=['GET', 'POST'])
 @login_required
@@ -195,38 +196,37 @@ def fbconfiguration():
 def instaconfiguration():
     a_token = request.args.get('long_lived_token')
     error_reason = request.args.get('error_reason')
+    user = User.query.get(current_user.id)
     if error_reason:
-        return error_reason
+        logging.info(error_reason)
+        print(error_reason)
+        return redirect(url_for('views.configurations'))
     else:
-        return a_token
+        response = requests.get('https://graph.facebook.com/v16.0/me/accounts?fields=id%2Caccess_token%2Cname%2Cinstagram_business_account&access_token=' + a_token)
+        data = json.loads(response.text)
+        logging.info("****** me/accounts ******")
+        logging.info(data)
+        print(data)
 
+        for page in data['data']:
+            response = requests.get('https://graph.facebook.com/'+ page['id'] +'?fields=access_token&access_token=' + a_token)
+            pData = json.loads(response.text)
+            logging.info("****** permanent access token mjson ******")
+            logging.info(pData)
+            print(pData)
+            if response.status_code == 200:
+                config = CompanyConfig(access_token=pData['access_token'], page_id=page['id'],type="insta", page_name=page['name'], company_id=user.company_id)
+                db.session.add(config)
+                db.session.commit()
 
-    # userId = data['userId']
-    # user = User.query.get(userId)
-    # pages = data['data']
-    # type = data['type']
-    # llat = data['llat']
-    # for page in pages:
-    #     response = requests.get('https://graph.facebook.com/'+ page['id'] +'?fields=access_token&access_token=' + llat)
-    #     pData = json.loads(response.text)
-    #     logging.info("****** permanent access token mjson ******")
-    #     logging.info(pData)
-    #     if response.status_code == 200:
-    #         config = CompanyConfig(access_token=pData['access_token'], page_id=page['id'],type=type, page_name=page['name'], company_id=user.company_id)
-    #         db.session.add(config)
-    #         db.session.commit()
+                r = requests.post('https://graph.facebook.com/'+ page['id'] + '/subscribed_apps?subscribed_fields=messages,message_reactions,messaging_postbacks,messaging_seen&access_token='+ pData['access_token'])
+                data1 = json.loads(r.text)
+                logging.info("****** subscribed_apps sent mjson ******")
+                logging.info(data1)
+                print(data1)
 
-    #         r = requests.post('https://graph.facebook.com/'+ page['id'] + '/subscribed_apps?subscribed_fields=messages,message_reads,message_reactions,messaging_postbacks,message_deliveries&access_token='+ pData['access_token'])
-    #         data1 = json.loads(r.text)
-    #         logging.info("****** subscribed_apps sent mjson ******")
-    #         logging.info(data1)
+        return redirect(url_for('views.configurations'))
 
-    # new_obj = {
-    #     'message': "Added successful"
-    # }
-    # resp = make_response(new_obj)
-    # resp.status_code = 200
-    # return resp
 
 @views.route('/test')
 def test():
