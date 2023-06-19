@@ -140,7 +140,7 @@ def configurations():
     app_secret = os.getenv('FACEBOOK_OAUTH_CLIENT_SECRET')
     user = User.query.get(current_user.id)
     configs = CompanyConfig.query.filter_by(company_id = user.company_id).all()
-    insta_login = "https://www.facebook.com/v16.0/dialog/oauth?client_id=" + app_id + "&display=page&extras={\"setup\":{\"channel\":\"IG_API_ONBOARDING\"}}&redirect_uri=https://troolog.onrender.com/instaconfiguration/&response_type=token&scope=instagram_basic,instagram_manage_messages,pages_manage_metadata"
+    insta_login = "https://www.facebook.com/v16.0/dialog/oauth?client_id=" + app_id + "&display=page&extras={\"setup\":{\"channel\":\"PARTNER\"}}&redirect_uri=https://troolog.onrender.com/instaconfiguration&response_type=token&scope=instagram_basic,instagram_manage_messages,pages_manage_metadata,pages_show_list"
     return render_template('configurations.html', configs=configs, configId=configId,userId=current_user.id, app_id=app_id, app_secret=app_secret,insta_login = insta_login )
 
 @views.route('/wpconfiguration', methods=['GET', 'POST'])
