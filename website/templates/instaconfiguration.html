@@ -1,0 +1,40 @@
+{% extends "user_layout.html" %}
+{% block style %}
+<style>
+    
+</style>
+{% endblock %}
+
+
+{% block content %}
+<section>
+    <h2>Connected</h2>
+</section>
+
+<script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+<script  type="text/javascript" charset="utf-8">
+    var baseUri = "http://127.0.0.1:5000"; //"http://127.0.0.1:5000";//"https://troologdemo.azurewebsites.net";
+    function isEmpty(value) {
+        return typeof value === 'undefined' || value === null || value === '';
+    }
+    document.addEventListener("DOMContentLoaded", function(event){
+        if(isEmpty(window.location.hash)){
+            alert("hi");
+        }
+        else{
+            const result = window.location.hash.split("long_lived_token=");
+            if(!isEmpty(result[1])){
+                axios.get(baseUri + '/configinstagram/'+ result[1])
+                  .then(function(response) {
+                    console.log(response.data);
+                    window.location.hash.href= baseUri + "/configurations"
+                  })
+                  .catch(function(error) {
+                      console.log(error.response.data);
+                      // Handle error
+                  });
+            }
+        }
+    })
+</script>
+{% endblock %}

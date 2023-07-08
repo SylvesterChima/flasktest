@@ -127,11 +127,6 @@ def api_profile():
     return redirect(url_for('views.profile'))
 
 
-
-
-
-
-
 @views.route('/configurations', methods=['GET'])
 @login_required
 def configurations():
@@ -192,54 +187,42 @@ def fbconfiguration():
     resp.status_code = 200
     return resp
 
+@views.route('/configinstagram/<string:longtoken>', methods=['GET'])
+def configinstagram(longtoken):
+    print(longtoken)
+    user = User.query.get(current_user.id)
+    response = requests.get('https://graph.facebook.com/v16.0/me/accounts?fields=id%2Caccess_token%2Cname%2Cinstagram_business_account&access_token=' + longtoken)
+    data = json.loads(response.text)
+    logging.info("****** me/accounts ******")
+    logging.info(data)
+    print(data)
+
+    for page in data['data']:
+        response = requests.get('https://graph.facebook.com/'+ page['id'] +'?fields=access_token&access_token=' + longtoken)
+        pData = json.loads(response.text)
+        logging.info("****** permanent access token mjson ******")
+        logging.info(pData)
+        print(pData)
+        if response.status_code == 200:
+            config = CompanyConfig(access_token=pData['access_token'], page_id=page['id'],type="insta", page_name=page['name'], company_id=user.company_id)
+            db.session.add(config)
+            db.session.commit()
+
+            r = requests.post('https://graph.facebook.com/'+ page['id'] + '/subscribed_apps?subscribed_fields=feed&access_token='+ pData['access_token'])
+            data1 = json.loads(r.text)
+            logging.info("****** subscribed_apps sent mjson ******")
+            logging.info(data1)
+            print(data1)
+
+    resp = make_response("Connected")
+    resp.status_code = 200
+    return resp
+    #return redirect(url_for('views.configurations'))
+
+
 @views.route('/instaconfiguration', methods=['GET'])
 def instaconfiguration():
-    request_url = request.url
-    return f"Request URL: {request_url}"
-    params = str(request.url)
-    return params
-    print(params)
-    llat = params.split("long_lived_token=")
-    print(llat)
-    print(llat[1])
-    return params
-    print(params)
-    a_token = None
-    if 'long_lived_token' in params:
-        a_token = params['long_lived_token']
-    error_reason = None
-    if 'error_reason' in params:
-        error_reason = params['error_reason']
-    user = User.query.get(current_user.id)
-    if error_reason:
-        logging.info(error_reason)
-        print(error_reason)
-        return redirect(url_for('views.configurations'))
-    else:
-        response = requests.get('https://graph.facebook.com/v16.0/me/accounts?fields=id%2Caccess_token%2Cname%2Cinstagram_business_account&access_token=' + a_token)
-        data = json.loads(response.text)
-        logging.info("****** me/accounts ******")
-        logging.info(data)
-        print(data)
-
-        for page in data['data']:
-            response = requests.get('https://graph.facebook.com/'+ page['id'] +'?fields=access_token&access_token=' + a_token)
-            pData = json.loads(response.text)
-            logging.info("****** permanent access token mjson ******")
-            logging.info(pData)
-            print(pData)
-            if response.status_code == 200:
-                config = CompanyConfig(access_token=pData['access_token'], page_id=page['id'],type="insta", page_name=page['name'], company_id=user.company_id)
-                db.session.add(config)
-                db.session.commit()
-
-                r = requests.post('https://graph.facebook.com/'+ page['id'] + '/subscribed_apps?subscribed_fields=feed&access_token='+ pData['access_token'])
-                data1 = json.loads(r.text)
-                logging.info("****** subscribed_apps sent mjson ******")
-                logging.info(data1)
-                print(data1)
-
-        return redirect(url_for('views.configurations'))
+    return render_template('instaconfiguration.html')
 
 
 @views.route('/test')
