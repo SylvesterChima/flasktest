@@ -186,9 +186,22 @@ def fb_handle_message(user_id, user_message):
 # inatagram messenger webhook
 @chat.route('/instagram/webhook', methods=['GET'])
 def insta_webhook_verify():
-    if request.args.get('hub.verify_token') == verify_token:
-        return request.args.get('hub.challenge')
-    return verify_token
+    mode = request.args['hub.mode']
+    token = request.args['hub.verify_token']
+    challenge = request.args['hub.challenge']
+    if mode and token:
+      if mode == 'subscribe' and token == verify_token:
+        print("subscribed")
+        return challenge
+      else:
+        print("wrong token")
+        return make_response('wrong token', 403)
+    else:
+      print("invalid params")
+      return make_response('invalid params', 400)
+    # if request.args.get('hub.verify_token') == verify_token:
+    #     return request.args.get('hub.challenge')
+    # return verify_token
 
 @chat.route('/instagram/webhook', methods=['POST'])
 def insta_webhook_action():

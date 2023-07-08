@@ -140,7 +140,7 @@ def configurations():
     app_secret = os.getenv('FACEBOOK_OAUTH_CLIENT_SECRET')
     user = User.query.get(current_user.id)
     configs = CompanyConfig.query.filter_by(company_id = user.company_id).all()
-    insta_login = "https://www.facebook.com/v16.0/dialog/oauth?client_id=" + app_id + "&display=page&extras={\"setup\":{\"channel\":\"PARTNER\"}}&redirect_uri=https://troolog.onrender.com/instaconfiguration&response_type=token&scope=instagram_basic,instagram_manage_messages,pages_manage_metadata,pages_show_list,pages_messaging"
+    insta_login = "https://www.facebook.com/v16.0/dialog/oauth?client_id=" + app_id + "&display=page&extras={\"setup\":{\"channel\":\"PARTNER\"}}&redirect_uri=https://troolog.onrender.com/instaconfiguration&response_type=token&scope=instagram_basic,instagram_manage_messages,pages_manage_metadata"
     return render_template('configurations.html', configs=configs, configId=configId,userId=current_user.id, app_id=app_id, app_secret=app_secret,insta_login = insta_login )
 
 @views.route('/wpconfiguration', methods=['GET', 'POST'])
@@ -194,7 +194,15 @@ def fbconfiguration():
 
 @views.route('/instaconfiguration', methods=['GET'])
 def instaconfiguration():
-    params = dict(request.args)
+    request_url = request.url
+    return f"Request URL: {request_url}"
+    params = str(request.url)
+    return params
+    print(params)
+    llat = params.split("long_lived_token=")
+    print(llat)
+    print(llat[1])
+    return params
     print(params)
     a_token = None
     if 'long_lived_token' in params:
@@ -225,7 +233,7 @@ def instaconfiguration():
                 db.session.add(config)
                 db.session.commit()
 
-                r = requests.post('https://graph.facebook.com/'+ page['id'] + '/subscribed_apps?subscribed_fields=messages,message_reactions,messaging_postbacks&access_token='+ pData['access_token'])
+                r = requests.post('https://graph.facebook.com/'+ page['id'] + '/subscribed_apps?subscribed_fields=feed&access_token='+ pData['access_token'])
                 data1 = json.loads(r.text)
                 logging.info("****** subscribed_apps sent mjson ******")
                 logging.info(data1)
