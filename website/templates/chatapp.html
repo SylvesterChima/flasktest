@@ -28,6 +28,7 @@
                 <h5>[[ item.name ]] <span class="chat_date">Dec 25</span></h5>
                 <p v-if="item.type == 'wp'">Whatsapp Message</p>
                 <p v-else-if="item.type == 'fb'">Facebook Message</p>
+                <p v-else-if="item.type == 'insta'">Instagram Message</p>
                 <p v-else="item.type == 'web'">Web Chat</p>
               </div>
             </div>
@@ -43,6 +44,7 @@
               <h5>[[ conversation.name ]]</h5>
               <p v-if="conversation.type == 'wp'">Whatsapp Message</p>
               <p v-else-if="conversation.type == 'fb'">Facebook Message</p>
+              <p v-else-if="conversation.type == 'insta'">Instagram Message</p>
               <p v-else="conversation.type == 'web'">Web Chat</p>
             </div>
           </div>

@@ -24,7 +24,7 @@ baseUrl=os.getenv('BASEURL')
 
 def is_message_notification(data):
     try:
-        if data ["object"]=="page":  #if true hngeeb entry [list]
+        if data["object"]=="page":  #if true hngeeb entry [list]
             for entry in data["entry"]:
                 for messaging_event in entry["messaging"]: #3shan ad5ol 3la list 
                     #sender_id = messaging_event["sender"]["id"]
@@ -33,7 +33,7 @@ def is_message_notification(data):
                         return True
                     else:
                         return False
-        elif data ["object"]=="whatsapp_business_account":
+        elif data["object"]=="whatsapp_business_account":
             for entry in data["entry"]:
                 for changes_event in entry["changes"]: #3shan ad5ol 3la list 
                     if changes_event["field"] == "messages":
@@ -41,6 +41,13 @@ def is_message_notification(data):
                             return True
                         else:
                             return False
+                    else:
+                        return False
+        elif data["object"]=="instagram":
+            for entry in data["entry"]:
+                for messaging_event in entry["messaging"]: #3shan ad5ol 3la list
+                    if messaging_event.get("message"):
+                        return True
                     else:
                         return False
         else:
@@ -199,30 +206,95 @@ def insta_webhook_verify():
     else:
       print("invalid params")
       return make_response('invalid params', 400)
-    # if request.args.get('hub.verify_token') == verify_token:
-    #     return request.args.get('hub.challenge')
-    # return verify_token
 
 @chat.route('/instagram/webhook', methods=['POST'])
 def insta_webhook_action():
     try:
         mjson = request.get_json()
-        print(mjson)
         logging.info("****** insta mjson ******")
         logging.info(mjson)
         logging.info("****** end insta mjson ******")
-        for entry in mjson['entry']:
-            user_message = entry['messaging'][0]['message']['text']
-            user_id = entry['messaging'][0]['sender']['id']
-            response = {
-                'recipient': {'id': user_id},
-                "messaging_type": "RESPONSE",
-                "message":{
-                    "text":"Hello, world!"
-                }
-            }
-            response['message']['text'] = insta_handle_message(user_id, user_message)
-            r = requests.post('https://graph.facebook.com/v16.0/me/messages/?access_token=' + insta_access_token, json=response)
+        if is_message_notification(mjson):
+            for entry in mjson["entry"]:
+                page_id = entry["id"]
+                for messaging_event in entry["messaging"]:
+                    sender_id = messaging_event["sender"]["id"]
+                    recipient_id = messaging_event["recipient"]["id"] #bgeb mn eldict elrecipient key
+                    timestamp = messaging_event["timestamp"]
+                    datetime_obj = datetime.fromtimestamp(int(timestamp)/1000)
+                    message_id = messaging_event["message"]["mid"]
+                    tagMsg = {
+                        "recipient":{
+                            "id":sender_id
+                        },
+                        "message":{
+                            "attachment":{
+                            "type":"template",
+                            "payload":{
+                                "template_type":"generic",
+                                "elements":[
+                                {
+                                    "title":"Welcome!",
+                                    "image_url":"https://fastly.picsum.photos/id/866/200/300.jpg?hmac=rcadCENKh4rD6MAp6V_ma-AyWv641M4iiOpe1RyFHeI",
+                                    "subtitle":"We offers the best toolkits for medium and large organisations to monitor and improve employee and customer satisfaction.",
+                                    "default_action": {
+                                    "type": "web_url",
+                                    "url": "https://troolog.onrender.com/",
+                                    "webview_height_ratio": "tall"
+                                    },
+                                    "buttons":[
+                                    {
+                                        "type":"web_url",
+                                        "url":"https://troolog.onrender.com/",
+                                        "title":"View Website"
+                                    }]
+                                }]
+                            }
+                            }
+                        }
+                    }
+                    sender_AttachmentUrl = None
+                    sender_message = None
+                    sender_messageType = "text"
+                    if "text" in messaging_event["message"]: #key:text
+                        sender_message = messaging_event["message"]["text"]
+                    if "attachments" in messaging_event["message"]:
+                        sender_AttachmentUrl = messaging_event["message"]["attachments"][0]["payload"]["url"]
+                        sender_messageType = messaging_event["message"]["attachments"][0]["type"]
+                    config = CompanyConfig.query.filter_by(page_id=page_id).order_by(CompanyConfig.id.desc()).first()
+                    if config:
+                        conv=Conversation.query.filter_by(conv_id=sender_id).first()
+                        if conv is None:
+                            user = get_userinfo(sender_id, config.access_token)
+                            user_name = user["first_name"] + " " +  user["last_name"]
+                            new_conv = Conversation(name=user_name, conv_id = sender_id, page_id = page_id, type="insta", company_id= config.company_id)
+                            db.session.add(new_conv)
+                            db.session.commit()
+
+                            member = Member(name=user_name, mobile_phone = sender_id, Conversation_id=new_conv.id)
+                            db.session.add(member)
+                            member = Member(name="Business", mobile_phone = "Business", Conversation_id=new_conv.id)
+                            db.session.add(member)
+                            db.session.commit()
+                            message = Message(message_id = message_id, message_type=sender_messageType,sender=sender_id, sender_message=sender_message,timestamp=datetime_obj, Conversation_id=new_conv.id, Member_id=member.id,image_url=sender_AttachmentUrl)
+                            db.session.add(message)
+                            db.session.commit()
+                            r = requests.post('https://graph.facebook.com/v16.0/'+ page_id +'/messages/?access_token=' + config.access_token, json=tagMsg)
+                            data1 = json.loads(r.text)
+                            logging.info("****** message sent mjson ******")
+                            logging.info(data1)
+                        else:
+                            last_message = Message.query.filter(and_(Message.sender == sender_id, Message.Conversation_id==conv.id)).order_by(Message.id.desc()).first()
+                            member = Member.query.filter(and_(Member.mobile_phone == sender_id, Member.Conversation_id==conv.id)).first()
+                            if member:
+                                message = Message(message_id = message_id, message_type=sender_messageType,sender=sender_id, sender_message=sender_message,timestamp=datetime_obj, Conversation_id=conv.id, Member_id=member.id,image_url=sender_AttachmentUrl)
+                                db.session.add(message)
+                                db.session.commit()
+
+                            if last_message:
+                                hour_difference = (datetime.utcnow() - last_message.timestamp).total_seconds() / 3600
+                                if hour_difference >= 24:
+                                    r = requests.post('https://graph.facebook.com/v16.0/'+ page_id +'/messages/?access_token=' + config.access_token, json=tagMsg)
         return Response(response="EVENT RECEIVED",status=200)
     except Exception as e:
         logging.error(str(e))
@@ -642,6 +714,65 @@ def sendmessage():
             resp = make_response(new_obj)
             resp.status_code = 200
             return resp
+        elif type == "insta":
+            msg = {}
+            if fileUrl:
+                msg = {
+                    "recipient": {"id": recipient},
+                    "messaging_type": "RESPONSE",
+                    "message":{
+                        "attachment":{
+                            "type":"image",
+                            "payload":{
+                                "url":fileUrl,
+                                "is_reusable":True
+                            }
+                        }
+                    }
+                }
+                message_type = "image"
+            else:
+                msg = {
+                    "recipient": {"id": recipient},
+                    "messaging_type": "RESPONSE",
+                    "message":{
+                        "text": message
+                    }
+                }
+            logging.info(msg)
+            timestamp = datetime.utcnow()
+            config = CompanyConfig.query.filter_by(page_id=page_id).order_by(CompanyConfig.id.desc()).first()
+            logging.info("****** Config mjson ******")
+            logging.info(config.page_id)
+            logging.info(config.access_token)
+            response = requests.post('https://graph.facebook.com/v16.0/'+ config.page_id +'/messages/?access_token=' + config.access_token, json=msg)
+            data = json.loads(response.text)
+            logging.info("****** response mjson ******")
+            logging.info(data)
+            print(data)
+            if response.status_code == 200:
+                message_id = data["message_id"]
+                messageObj = Message(message_id = message_id, message_type=message_type, sender="Business", sender_message=message, timestamp=timestamp, Conversation_id=conversationId, Member_id=memberId,image_url=fileUrl)
+                db.session.add(messageObj)
+                db.session.commit()
+                new_obj = {
+                    'id': messageObj.id,
+                    'message_id': message_id,
+                    'message_type': message_type,
+                    'sender': "Business",
+                    'sender_message': message,
+                    'image_url': fileUrl,
+                    'timestamp': timestamp,
+                    'Conversation_id': conversationId,
+                    'Member_id': memberId
+                }
+                resp = make_response(new_obj)
+                resp.status_code = 200
+                return resp
+            else:
+                resp = make_response("message failed")
+                resp.status_code = 400
+                return resp
         else:
             resp = make_response("message failed")
             resp.status_code = 400
