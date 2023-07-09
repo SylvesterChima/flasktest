@@ -8,12 +8,12 @@
 
 {% block content %}
 <section>
-    <h2>Connected</h2>
+    <h2 id="status">Connecting...</h2>
 </section>
 
 <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
 <script  type="text/javascript" charset="utf-8">
-    var baseUri = "http://127.0.0.1:5000"; //"http://127.0.0.1:5000";//"https://troologdemo.azurewebsites.net";
+    var baseUri = "https://troolog.onrender.com"; //"http://127.0.0.1:5000";//"https://troologdemo.azurewebsites.net";
     function isEmpty(value) {
         return typeof value === 'undefined' || value === null || value === '';
     }
@@ -27,10 +27,12 @@
                 axios.get(baseUri + '/configinstagram/'+ result[1])
                   .then(function(response) {
                     console.log(response.data);
-                    window.location.hash.href= baseUri + "/configurations"
+                    document.getElementById("status").value = response.data;
+                    window.location.href = baseUri + "/configurations"
                   })
                   .catch(function(error) {
                       console.log(error.response.data);
+                      document.getElementById("status").value = "Failed to connect";
                       // Handle error
                   });
             }
