@@ -750,7 +750,7 @@ def sendmessage():
                 }
             logging.info(msg)
             timestamp = datetime.utcnow()
-            config = CompanyConfig.query.filter_by(page_id=page_id).order_by(CompanyConfig.id.desc()).first()
+            config = CompanyConfig.query.filter_by(phone_id=page_id).order_by(CompanyConfig.id.desc()).first()
             logging.info("****** Config mjson ******")
             logging.info(config.page_id)
             logging.info(config.access_token)
