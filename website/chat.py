@@ -215,14 +215,18 @@ def insta_webhook_action():
         logging.info(mjson)
         logging.info("****** end insta mjson ******")
         if is_message_notification(mjson):
+            logging.info("****** valid mjson ******")
             for entry in mjson["entry"]:
+                logging.info("****** Entry mjson ******")
                 page_id = entry["id"]
                 for messaging_event in entry["messaging"]:
+                    logging.info("****** messaging mjson ******")
                     sender_id = messaging_event["sender"]["id"]
                     recipient_id = messaging_event["recipient"]["id"] #bgeb mn eldict elrecipient key
                     timestamp = messaging_event["timestamp"]
                     datetime_obj = datetime.fromtimestamp(int(timestamp)/1000)
                     message_id = messaging_event["message"]["mid"]
+                    logging.info("****** tagMsg mjson ******")
                     tagMsg = {
                         "recipient":{
                             "id":sender_id
@@ -261,10 +265,13 @@ def insta_webhook_action():
                     if "attachments" in messaging_event["message"]:
                         sender_AttachmentUrl = messaging_event["message"]["attachments"][0]["payload"]["url"]
                         sender_messageType = messaging_event["message"]["attachments"][0]["type"]
+                    logging.info("****** before config mjson ******")
                     config = CompanyConfig.query.filter_by(page_id=page_id).order_by(CompanyConfig.id.desc()).first()
                     if config:
+                        logging.info("****** config mjson ******")
                         conv=Conversation.query.filter_by(conv_id=sender_id).first()
                         if conv is None:
+                            logging.info("****** conv mjson ******")
                             user = get_userinfo(sender_id, config.access_token)
                             user_name = user["first_name"] + " " +  user["last_name"]
                             new_conv = Conversation(name=user_name, conv_id = sender_id, page_id = page_id, type="insta", company_id= config.company_id)
@@ -284,9 +291,11 @@ def insta_webhook_action():
                             logging.info("****** message sent mjson ******")
                             logging.info(data1)
                         else:
+                            logging.info("****** conv exist mjson ******")
                             last_message = Message.query.filter(and_(Message.sender == sender_id, Message.Conversation_id==conv.id)).order_by(Message.id.desc()).first()
                             member = Member.query.filter(and_(Member.mobile_phone == sender_id, Member.Conversation_id==conv.id)).first()
                             if member:
+                                logging.info("****** member mjson ******")
                                 message = Message(message_id = message_id, message_type=sender_messageType,sender=sender_id, sender_message=sender_message,timestamp=datetime_obj, Conversation_id=conv.id, Member_id=member.id,image_url=sender_AttachmentUrl)
                                 db.session.add(message)
                                 db.session.commit()
