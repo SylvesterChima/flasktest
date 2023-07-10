@@ -30,12 +30,13 @@ def create_app():
     #app.config["OAUTHLIB_INSECURE_TRANSPORT"] = "true"
     if ENV == 'dev':
         #app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql://postgres:admin@localhost/demodata'
-        app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql://demodata_px9t_user:WbErZ6dV5gADNv1Cb64MeB06NNJ5eFvg@dpg-ci7hrih8g3n3vm0afhig-a.oregon-postgres.render.com/demodata_px9t'
-        #app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql://lidsjeqy:DoT6HOej5Uuk-c_fuXX07ingAxGMyG8P@tyke.db.elephantsql.com/lidsjeqy'
+        #app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql://demodata_px9t_user:WbErZ6dV5gADNv1Cb64MeB06NNJ5eFvg@dpg-ci7hrih8g3n3vm0afhig-a.oregon-postgres.render.com/demodata_px9t'
+        app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql://lidsjeqy:DoT6HOej5Uuk-c_fuXX07ingAxGMyG8P@tyke.db.elephantsql.com/lidsjeqy'
     else:
+        app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql://lidsjeqy:DoT6HOej5Uuk-c_fuXX07ingAxGMyG8P@tyke.db.elephantsql.com/lidsjeqy'
         #app.config['SQLALCHEMY_DATABASE_URI'] = 'mssql+pyodbc://dflask:@Standup12@dflask-server.database.windows.net/dflask_data?driver=ODBC+Driver+17+for+SQL+Server'
         #app.config['SQLALCHEMY_DATABASE_URI'] = "mssql+pyodbc:///?odbc_connect=%s" % uri
-        app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql://demodata_px9t_user:WbErZ6dV5gADNv1Cb64MeB06NNJ5eFvg@dpg-ci7hrih8g3n3vm0afhig-a.oregon-postgres.render.com/demodata_px9t'
+        #app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql://demodata_px9t_user:WbErZ6dV5gADNv1Cb64MeB06NNJ5eFvg@dpg-ci7hrih8g3n3vm0afhig-a.oregon-postgres.render.com/demodata_px9t'
         #app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql://eszo:standup12$@esco-dev-server.postgres.database.azure.com/troolog_dev?sslmode=require'
     app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
     #with app.app_context():
