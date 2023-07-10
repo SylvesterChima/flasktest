@@ -204,7 +204,7 @@ def configinstagram(longtoken):
         logging.info(pData)
         print(pData)
         if response.status_code == 200:
-            config = CompanyConfig(access_token=pData['access_token'], page_id=page['id'],type="insta", page_name=page['name'], company_id=user.company_id)
+            config = CompanyConfig(access_token=pData['access_token'], phone_id=page['instagram_business_account']['id'],page_id=page['id'],type="insta", page_name=page['name'], company_id=user.company_id)
             db.session.add(config)
             db.session.commit()
 
@@ -222,7 +222,8 @@ def configinstagram(longtoken):
 
 @views.route('/instaconfiguration', methods=['GET'])
 def instaconfiguration():
-    return render_template('instaconfiguration.html')
+    baseUrl = os.getenv('BASEURL')
+    return render_template('instaconfiguration.html',baseUrl=baseUrl)
 
 
 @views.route('/test')

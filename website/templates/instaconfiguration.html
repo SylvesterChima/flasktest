@@ -13,13 +13,13 @@
 
 <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
 <script  type="text/javascript" charset="utf-8">
-    var baseUri = "https://troolog.onrender.com"; //"http://127.0.0.1:5000";//"https://troologdemo.azurewebsites.net";
+    var baseUri = '{{baseUrl}}'
     function isEmpty(value) {
         return typeof value === 'undefined' || value === null || value === '';
     }
     document.addEventListener("DOMContentLoaded", function(event){
         if(isEmpty(window.location.hash)){
-            alert("hi");
+            document.getElementById("status").value = "Connection failed!";
         }
         else{
             const result = window.location.hash.split("long_lived_token=");

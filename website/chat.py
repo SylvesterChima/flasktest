@@ -266,7 +266,7 @@ def insta_webhook_action():
                         sender_AttachmentUrl = messaging_event["message"]["attachments"][0]["payload"]["url"]
                         sender_messageType = messaging_event["message"]["attachments"][0]["type"]
                     logging.info("****** before config mjson ******")
-                    config = CompanyConfig.query.filter_by(page_id=page_id).order_by(CompanyConfig.id.desc()).first()
+                    config = CompanyConfig.query.filter_by(phone_id=page_id).order_by(CompanyConfig.id.desc()).first()
                     if config:
                         logging.info("****** config mjson ******")
                         conv=Conversation.query.filter_by(conv_id=sender_id).first()
@@ -286,7 +286,7 @@ def insta_webhook_action():
                             message = Message(message_id = message_id, message_type=sender_messageType,sender=sender_id, sender_message=sender_message,timestamp=datetime_obj, Conversation_id=new_conv.id, Member_id=member.id,image_url=sender_AttachmentUrl)
                             db.session.add(message)
                             db.session.commit()
-                            r = requests.post('https://graph.facebook.com/v16.0/'+ page_id +'/messages/?access_token=' + config.access_token, json=tagMsg)
+                            r = requests.post('https://graph.facebook.com/v16.0/'+ config.page_id +'/messages/?access_token=' + config.access_token, json=tagMsg)
                             data1 = json.loads(r.text)
                             logging.info("****** message sent mjson ******")
                             logging.info(data1)
@@ -303,7 +303,7 @@ def insta_webhook_action():
                             if last_message:
                                 hour_difference = (datetime.utcnow() - last_message.timestamp).total_seconds() / 3600
                                 if hour_difference >= 24:
-                                    r = requests.post('https://graph.facebook.com/v16.0/'+ page_id +'/messages/?access_token=' + config.access_token, json=tagMsg)
+                                    r = requests.post('https://graph.facebook.com/v16.0/'+ config.page_id +'/messages/?access_token=' + config.access_token, json=tagMsg)
         return Response(response="EVENT RECEIVED",status=200)
     except Exception as e:
         logging.error(str(e))
