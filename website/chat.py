@@ -76,6 +76,7 @@ def get_userinfo(pSID, accessToken):
     response = requests.get('https://graph.facebook.com/v16.0/'+ pSID + '?access_token=' + accessToken)
     if response.status_code == 200:
         data = json.loads(response.text)
+        logging.info(data)
         print(data)
         return data
     else:
@@ -273,7 +274,9 @@ def insta_webhook_action():
                         if conv is None:
                             logging.info("****** conv mjson ******")
                             user = get_userinfo(sender_id, config.access_token)
-                            user_name = user["first_name"] + " " +  user["last_name"]
+                            user_name = str(nanoid.generate())
+                            if "first_name" in user:
+                                user_name = user["first_name"] + " " +  user["last_name"]
                             new_conv = Conversation(name=user_name, conv_id = sender_id, page_id = page_id, type="insta", company_id= config.company_id)
                             db.session.add(new_conv)
                             db.session.commit()
