@@ -59,6 +59,7 @@ def payment_callback():
 @views.route('/')
 def home():
     session['token'] = uuid.uuid4().hex
+    logging.error("home")
     if 'chatsession' not in session:
         session['chatsession'] = nanoid.generate()
     return render_template('index.html', user=current_user)
@@ -90,6 +91,7 @@ def feedback():
 @views.route('/dashboard')
 @login_required
 def dashboard():
+    logging.error("dashboard")
     return render_template('dashboard.html')
 
 @views.route('/privacy')
@@ -100,6 +102,7 @@ def privacy():
 @login_required
 def profile():
     session.pop('_flashes', None)
+    logging.error("profile")
     if request.method == 'POST':
         FirstName = request.form.get('FirstName')
         LastName = request.form.get('LastName')
