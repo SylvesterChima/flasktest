@@ -223,90 +223,93 @@ def insta_webhook_action():
                 for messaging_event in entry["messaging"]:
                     logging.info("****** messaging mjson ******")
                     sender_id = messaging_event["sender"]["id"]
-                    recipient_id = messaging_event["recipient"]["id"] #bgeb mn eldict elrecipient key
-                    timestamp = messaging_event["timestamp"]
-                    datetime_obj = datetime.fromtimestamp(int(timestamp)/1000)
-                    message_id = messaging_event["message"]["mid"]
-                    logging.info("****** tagMsg mjson ******")
-                    tagMsg = {
-                        "recipient":{
-                            "id":sender_id
-                        },
-                        "message":{
-                            "attachment":{
-                            "type":"template",
-                            "payload":{
-                                "template_type":"generic",
-                                "elements":[
-                                {
-                                    "title":"Welcome!",
-                                    "image_url":"https://fastly.picsum.photos/id/866/200/300.jpg?hmac=rcadCENKh4rD6MAp6V_ma-AyWv641M4iiOpe1RyFHeI",
-                                    "subtitle":"We offers the best toolkits for medium and large organisations to monitor and improve employee and customer satisfaction.",
-                                    "default_action": {
-                                    "type": "web_url",
-                                    "url": "https://troolog.onrender.com/",
-                                    "webview_height_ratio": "tall"
-                                    },
-                                    "buttons":[
+                    if page_id != sender_id:
+                        recipient_id = messaging_event["recipient"]["id"] #bgeb mn eldict elrecipient key
+                        timestamp = messaging_event["timestamp"]
+                        datetime_obj = datetime.fromtimestamp(int(timestamp)/1000)
+                        message_id = messaging_event["message"]["mid"]
+                        logging.info("****** tagMsg mjson ******")
+                        tagMsg = {
+                            "recipient":{
+                                "id":sender_id
+                            },
+                            "message":{
+                                "attachment":{
+                                "type":"template",
+                                "payload":{
+                                    "template_type":"generic",
+                                    "elements":[
                                     {
-                                        "type":"web_url",
-                                        "url":"https://troolog.onrender.com/",
-                                        "title":"View Website"
+                                        "title":"Welcome!",
+                                        "image_url":"https://fastly.picsum.photos/id/866/200/300.jpg?hmac=rcadCENKh4rD6MAp6V_ma-AyWv641M4iiOpe1RyFHeI",
+                                        "subtitle":"We offers the best toolkits for medium and large organisations to monitor and improve employee and customer satisfaction.",
+                                        "default_action": {
+                                        "type": "web_url",
+                                        "url": "https://troolog.onrender.com/",
+                                        "webview_height_ratio": "tall"
+                                        },
+                                        "buttons":[
+                                        {
+                                            "type":"web_url",
+                                            "url":"https://troolog.onrender.com/",
+                                            "title":"View Website"
+                                        }]
                                     }]
-                                }]
-                            }
+                                }
+                                }
                             }
                         }
-                    }
-                    sender_AttachmentUrl = None
-                    sender_message = None
-                    sender_messageType = "text"
-                    if "text" in messaging_event["message"]: #key:text
-                        sender_message = messaging_event["message"]["text"]
-                    if "attachments" in messaging_event["message"]:
-                        sender_AttachmentUrl = messaging_event["message"]["attachments"][0]["payload"]["url"]
-                        sender_messageType = messaging_event["message"]["attachments"][0]["type"]
-                    logging.info("****** before config mjson ******")
-                    config = CompanyConfig.query.filter_by(phone_id=page_id).order_by(CompanyConfig.id.desc()).first()
-                    if config:
-                        logging.info("****** config mjson ******")
-                        conv=Conversation.query.filter_by(conv_id=sender_id).first()
-                        if conv is None:
-                            logging.info("****** conv mjson ******")
-                            user = get_userinfo(sender_id, config.access_token)
-                            user_name = str(nanoid.generate())
-                            if "first_name" in user:
-                                user_name = user["first_name"] + " " +  user["last_name"]
-                            new_conv = Conversation(name=user_name, conv_id = sender_id, page_id = page_id, type="insta", company_id= config.company_id)
-                            db.session.add(new_conv)
-                            db.session.commit()
-
-                            member = Member(name=user_name, mobile_phone = sender_id, Conversation_id=new_conv.id)
-                            db.session.add(member)
-                            member = Member(name="Business", mobile_phone = "Business", Conversation_id=new_conv.id)
-                            db.session.add(member)
-                            db.session.commit()
-                            message = Message(message_id = message_id, message_type=sender_messageType,sender=sender_id, sender_message=sender_message,timestamp=datetime_obj, Conversation_id=new_conv.id, Member_id=member.id,image_url=sender_AttachmentUrl)
-                            db.session.add(message)
-                            db.session.commit()
-                            r = requests.post('https://graph.facebook.com/v16.0/'+ config.page_id +'/messages/?access_token=' + config.access_token, json=tagMsg)
-                            data1 = json.loads(r.text)
-                            logging.info("****** message sent mjson ******")
-                            logging.info(data1)
-                        else:
-                            logging.info("****** conv exist mjson ******")
-                            last_message = Message.query.filter(and_(Message.sender == sender_id, Message.Conversation_id==conv.id)).order_by(Message.id.desc()).first()
-                            member = Member.query.filter(and_(Member.mobile_phone == sender_id, Member.Conversation_id==conv.id)).first()
-                            if member:
-                                logging.info("****** member mjson ******")
-                                message = Message(message_id = message_id, message_type=sender_messageType,sender=sender_id, sender_message=sender_message,timestamp=datetime_obj, Conversation_id=conv.id, Member_id=member.id,image_url=sender_AttachmentUrl)
-                                db.session.add(message)
+                        sender_AttachmentUrl = None
+                        sender_message = None
+                        sender_messageType = "text"
+                        if "text" in messaging_event["message"]: #key:text
+                            sender_message = messaging_event["message"]["text"]
+                        if "attachments" in messaging_event["message"]:
+                            sender_AttachmentUrl = messaging_event["message"]["attachments"][0]["payload"]["url"]
+                            sender_messageType = messaging_event["message"]["attachments"][0]["type"]
+                        logging.info("****** before config mjson ******")
+                        config = CompanyConfig.query.filter_by(phone_id=page_id).order_by(CompanyConfig.id.desc()).first()
+                        if config:
+                            logging.info("****** config mjson ******")
+                            conv=Conversation.query.filter_by(conv_id=sender_id).first()
+                            if conv is None:
+                                logging.info("****** conv mjson ******")
+                                user = get_userinfo(sender_id, config.access_token)
+                                user_name = str(nanoid.generate())
+                                if "first_name" in user:
+                                    user_name = user["first_name"] + " " +  user["last_name"]
+                                elif "name" in user:
+                                    user_name = user["name"]
+                                new_conv = Conversation(name=user_name, conv_id = sender_id, page_id = page_id, type="insta", company_id= config.company_id)
+                                db.session.add(new_conv)
                                 db.session.commit()
 
-                            if last_message:
-                                hour_difference = (datetime.utcnow() - last_message.timestamp).total_seconds() / 3600
-                                if hour_difference >= 24:
-                                    r = requests.post('https://graph.facebook.com/v16.0/'+ config.page_id +'/messages/?access_token=' + config.access_token, json=tagMsg)
+                                member = Member(name=user_name, mobile_phone = sender_id, Conversation_id=new_conv.id)
+                                db.session.add(member)
+                                member = Member(name="Business", mobile_phone = "Business", Conversation_id=new_conv.id)
+                                db.session.add(member)
+                                db.session.commit()
+                                message = Message(message_id = message_id, message_type=sender_messageType,sender=sender_id, sender_message=sender_message,timestamp=datetime_obj, Conversation_id=new_conv.id, Member_id=member.id,image_url=sender_AttachmentUrl)
+                                db.session.add(message)
+                                db.session.commit()
+                                r = requests.post('https://graph.facebook.com/v16.0/'+ config.page_id +'/messages/?access_token=' + config.access_token, json=tagMsg)
+                                data1 = json.loads(r.text)
+                                logging.info("****** message sent mjson ******")
+                                logging.info(data1)
+                            else:
+                                logging.info("****** conv exist mjson ******")
+                                last_message = Message.query.filter(and_(Message.sender == sender_id, Message.Conversation_id==conv.id)).order_by(Message.id.desc()).first()
+                                member = Member.query.filter(and_(Member.mobile_phone == sender_id, Member.Conversation_id==conv.id)).first()
+                                if member:
+                                    logging.info("****** member mjson ******")
+                                    message = Message(message_id = message_id, message_type=sender_messageType,sender=sender_id, sender_message=sender_message,timestamp=datetime_obj, Conversation_id=conv.id, Member_id=member.id,image_url=sender_AttachmentUrl)
+                                    db.session.add(message)
+                                    db.session.commit()
+
+                                if last_message:
+                                    hour_difference = (datetime.utcnow() - last_message.timestamp).total_seconds() / 3600
+                                    if hour_difference >= 24:
+                                        r = requests.post('https://graph.facebook.com/v16.0/'+ config.page_id +'/messages/?access_token=' + config.access_token, json=tagMsg)
         return Response(response="EVENT RECEIVED",status=200)
     except Exception as e:
         logging.error(str(e))
