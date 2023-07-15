@@ -207,15 +207,16 @@ def configinstagram(longtoken):
         logging.info(pData)
         print(pData)
         if response.status_code == 200:
-            config = CompanyConfig(access_token=pData['access_token'], phone_id=page['instagram_business_account']['id'],page_id=page['id'],type="insta", page_name=page['name'], company_id=user.company_id)
-            db.session.add(config)
-            db.session.commit()
+            if "instagram_business_account" in page:
+                config = CompanyConfig(access_token=pData['access_token'], phone_id=page['instagram_business_account']['id'],page_id=page['id'],type="insta", page_name=page['name'], company_id=user.company_id)
+                db.session.add(config)
+                db.session.commit()
 
-            r = requests.post('https://graph.facebook.com/'+ page['id'] + '/subscribed_apps?subscribed_fields=feed&access_token='+ pData['access_token'])
-            data1 = json.loads(r.text)
-            logging.info("****** subscribed_apps sent mjson ******")
-            logging.info(data1)
-            print(data1)
+                r = requests.post('https://graph.facebook.com/'+ page['id'] + '/subscribed_apps?subscribed_fields=feed&access_token='+ pData['access_token'])
+                data1 = json.loads(r.text)
+                logging.info("****** subscribed_apps sent mjson ******")
+                logging.info(data1)
+                print(data1)
 
     resp = make_response("Connected")
     resp.status_code = 200
