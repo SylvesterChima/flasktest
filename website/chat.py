@@ -229,6 +229,7 @@ def insta_webhook_action():
                         datetime_obj = datetime.fromtimestamp(int(timestamp)/1000)
                         message_id = messaging_event["message"]["mid"]
                         logging.info("****** tagMsg mjson ******")
+                        
                         tagMsg = {
                             "recipient":{
                                 "id":sender_id
@@ -253,7 +254,19 @@ def insta_webhook_action():
                                             "type":"web_url",
                                             "url":"https://troolog.onrender.com/",
                                             "title":"View Website"
-                                        }]
+                                        },
+                                        {
+                                            "type":"postback",
+                                            "title":"Finance",
+                                            "payload": {
+                                                "recipient": {"id": sender_id},
+                                                "messaging_type": "RESPONSE",
+                                                "message":{
+                                                    "text": "Finance"
+                                                }
+                                            }
+                                        }
+                                        ]
                                     }]
                                 }
                                 }
