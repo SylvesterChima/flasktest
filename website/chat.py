@@ -241,7 +241,7 @@ def insta_webhook_action():
                                     "elements":[
                                     {
                                         "title":"Welcome!",
-                                        "image_url": baseUrl + "/static/question.png",
+                                        "image_url": "https://fastly.picsum.photos/id/866/200/300.jpg?hmac=rcadCENKh4rD6MAp6V_ma-AyWv641M4iiOpe1RyFHeI", #baseUrl + "/static/question.png",
                                         "subtitle":"Please select one option for better support",
                                         "default_action": {
                                             "type": "web_url",
