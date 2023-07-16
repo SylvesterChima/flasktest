@@ -125,9 +125,9 @@ def webhook_action():
                                     "image_url":"https://fastly.picsum.photos/id/866/200/300.jpg?hmac=rcadCENKh4rD6MAp6V_ma-AyWv641M4iiOpe1RyFHeI",
                                     "subtitle":"We offers the best toolkits for medium and large organisations to monitor and improve employee and customer satisfaction.",
                                     "default_action": {
-                                    "type": "web_url",
-                                    "url": "https://troologdemo.azurewebsites.net/",
-                                    "webview_height_ratio": "tall"
+                                        "type": "web_url",
+                                        "url": "https://troologdemo.azurewebsites.net/",
+                                        "webview_height_ratio": "tall"
                                     },
                                     "buttons":[
                                     {
@@ -241,19 +241,34 @@ def insta_webhook_action():
                                     "elements":[
                                     {
                                         "title":"Welcome!",
-                                        "image_url":"https://fastly.picsum.photos/id/866/200/300.jpg?hmac=rcadCENKh4rD6MAp6V_ma-AyWv641M4iiOpe1RyFHeI",
-                                        "subtitle":"We offers the best toolkits for medium and large organisations to monitor and improve employee and customer satisfaction.",
+                                        "image_url": baseUrl + "/static/question.png",
+                                        "subtitle":"Please select one option for better support",
                                         "default_action": {
-                                        "type": "web_url",
-                                        "url": "https://troolog.onrender.com/",
-                                        "webview_height_ratio": "tall"
+                                            "type": "web_url",
+                                            "url": "https://troolog.azurewebsites.net/"
                                         },
                                         "buttons":[
-                                        {
-                                            "type":"web_url",
-                                            "url":"https://troolog.onrender.com/",
-                                            "title":"View Website"
-                                        }]
+                                            {
+                                                "type":"web_url",
+                                                "url":"https://troolog.onrender.com/",
+                                                "title":"View Website"
+                                            },
+                                            {
+                                                "type":"postback",
+                                                "title":"Order",
+                                                "payload":"DEVELOPER_DEFINED_PAYLOAD"
+                                            },
+                                            {
+                                                "type":"postback",
+                                                "title":"Finance issue",
+                                                "payload":"DEVELOPER_DEFINED_PAYLOAD2"
+                                            },
+                                            {
+                                                "type":"postback",
+                                                "title":"Enquries",
+                                                "payload":"DEVELOPER_DEFINED_PAYLOAD3"
+                                            }
+                                        ]
                                     }]
                                 }
                                 }
