@@ -234,3 +234,20 @@ def instaconfiguration():
 def test():
     company = Company.query.get(current_user.company_id)
     return render_template('test.html', user=current_user, company = company)
+
+@views.route('/books', methods=['GET'])
+def books():
+    api_url = 'http://127.0.0.1:3000/books'
+    access_token = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJwdWJsaWNfaWQiOiIzNjk0ODZkZS0zM2I5LTQyNjQtOGE5ZS0wMzk3YzhkODhjMmUiLCJleHAiOjE2ODk4NzY0OTl9._N1MeKXCvrSonGV26f1pZwYQsNXyKRFnOdNrqipDCVU'
+    headers = {
+        'x-access-tokens': access_token
+    }
+    try:
+        response = requests.get(api_url, headers=headers)
+        if response.status_code == 200:
+            data = response.json()
+            return data
+        else:
+            return f"Error: {response.status_code} - {response.text}"
+    except requests.exceptions.RequestException as e:
+        return f"Error: {e}"

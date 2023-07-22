@@ -31,10 +31,11 @@ def create_app():
     if ENV == 'dev':
         #app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql://postgres:admin@localhost/demodata'
         #app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql://demodata_px9t_user:WbErZ6dV5gADNv1Cb64MeB06NNJ5eFvg@dpg-ci7hrih8g3n3vm0afhig-a.oregon-postgres.render.com/demodata_px9t'
-        app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql://lidsjeqy:DoT6HOej5Uuk-c_fuXX07ingAxGMyG8P@tyke.db.elephantsql.com/lidsjeqy'
+        #app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql://lidsjeqy:DoT6HOej5Uuk-c_fuXX07ingAxGMyG8P@tyke.db.elephantsql.com/lidsjeqy'
+        app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql://ijcccjle:fDu4fiTJeodA1UoHAfC2vVWLjk_S3hEM@horton.db.elephantsql.com/ijcccjle'
     else:
-        app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql://lidsjeqy:DoT6HOej5Uuk-c_fuXX07ingAxGMyG8P@tyke.db.elephantsql.com/lidsjeqy'
-        #app.config['SQLALCHEMY_DATABASE_URI'] = 'mssql+pyodbc://dflask:@Standup12@dflask-server.database.windows.net/dflask_data?driver=ODBC+Driver+17+for+SQL+Server'
+        #app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql://lidsjeqy:DoT6HOej5Uuk-c_fuXX07ingAxGMyG8P@tyke.db.elephantsql.com/lidsjeqy'
+        app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql://ijcccjle:fDu4fiTJeodA1UoHAfC2vVWLjk_S3hEM@horton.db.elephantsql.com/ijcccjle'
         #app.config['SQLALCHEMY_DATABASE_URI'] = "mssql+pyodbc:///?odbc_connect=%s" % uri
         #app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql://demodata_px9t_user:WbErZ6dV5gADNv1Cb64MeB06NNJ5eFvg@dpg-ci7hrih8g3n3vm0afhig-a.oregon-postgres.render.com/demodata_px9t'
         #app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql://eszo:standup12$@esco-dev-server.postgres.database.azure.com/troolog_dev?sslmode=require'

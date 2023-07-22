@@ -12,6 +12,7 @@ class Company(db.Model):
     conversations = db.relationship('Conversation',backref='company')
     company_configs = db.relationship('CompanyConfig',backref='company')
     users = db.relationship('User',backref='company')
+    departments = db.relationship('Department',backref='company')
 
 class User(db.Model, UserMixin):
     id = db.Column(db.Integer, primary_key=True)
@@ -43,6 +44,7 @@ class Conversation(db.Model):
     conv_id = db.Column(db.String(200))
     page_id = db.Column(db.String(200))
     type = db.Column(db.String(50))
+    department=db.Column(db.String(50), nullable=True)
     date_created = db.Column(db.DateTime, default=datetime.utcnow)
     company_id = db.Column(db.Integer, db.ForeignKey('company.id'),nullable=False)
     messages = db.relationship('Message',backref='conversation')
@@ -67,3 +69,8 @@ class Message(db.Model):
     image_url=db.Column(db.String(), nullable=True)
     Conversation_id = db.Column(db.Integer, db.ForeignKey('conversation.id'),nullable=False)
     Member_id = db.Column(db.Integer, db.ForeignKey('member.id'),nullable=False)
+
+class Department(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String())
+    company_id = db.Column(db.Integer, db.ForeignKey('company.id'),nullable=False)

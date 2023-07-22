@@ -1,5 +1,5 @@
 from flask import Blueprint,redirect,url_for,render_template,session,request,flash,current_app,jsonify,Response,make_response
-from .models import User, Conversation, Member, Message, Company, CompanyConfig
+from .models import User, Conversation, Member, Message, Company, CompanyConfig, Department
 from datetime import datetime
 import nanoid
 import requests
@@ -26,35 +26,39 @@ def is_message_notification(data):
     try:
         if data["object"]=="page":  #if true hngeeb entry [list]
             for entry in data["entry"]:
-                for messaging_event in entry["messaging"]: #3shan ad5ol 3la list 
-                    #sender_id = messaging_event["sender"]["id"]
-                    #recipient_id = messaging_event["recipient"]["id"] #bgeb mn eldict elrecipient key
+                for messaging_event in entry["messaging"]:
                     if messaging_event.get("message"):
-                        return True
+                        return "message"
+                    elif messaging_event.get("postback"):
+                        return "postback"
                     else:
-                        return False
+                        return "invalid"
         elif data["object"]=="whatsapp_business_account":
             for entry in data["entry"]:
                 for changes_event in entry["changes"]: #3shan ad5ol 3la list 
                     if changes_event["field"] == "messages":
                         if changes_event["value"].get("messages"):
-                            return True
+                            return "message"
+                        elif changes_event["value"].get("postback"):
+                            return "postback"
                         else:
-                            return False
+                            return "invalid"
                     else:
-                        return False
+                        return "invalid"
         elif data["object"]=="instagram":
             for entry in data["entry"]:
-                for messaging_event in entry["messaging"]: #3shan ad5ol 3la list
+                for messaging_event in entry["messaging"]:
                     if messaging_event.get("message"):
-                        return True
+                        return "message"
+                    elif messaging_event.get("postback"):
+                        return "postback"
                     else:
-                        return False
+                        return "invalid"
         else:
-            return False
+            return "invalid"
     except Exception as e:
         logging.error(str(e))
-        return False
+        return "invalid"
 
 @chat.route('/deleteall', methods=['GET'])
 def deleteAll():
@@ -70,6 +74,17 @@ def deleteAll():
     # db.session.commit()
     # db.session.query(Company).delete()
     # db.session.commit()
+    return redirect(url_for('chat.chatapp'))
+
+@chat.route('/createdepartment', methods=['GET'])
+def CreateDepartment():
+    dept1 = Department(Company_id = 1, name = "Finance")
+    db.session.add(dept1)
+    dept2 = Department(Company_id = 1, name = "Operation")
+    db.session.add(dept2)
+    dept3 = Department(Company_id = 1, name = "Delivery")
+    db.session.add(dept3)
+    db.session.commit()
     return redirect(url_for('chat.chatapp'))
 
 def get_userinfo(pSID, accessToken):
@@ -100,8 +115,7 @@ def webhook_action():
         logging.info("****** fb mjson ******")
         logging.info(mjson)
         logging.info("****** end fb mjson ******")
-        if is_message_notification(mjson):
-
+        if is_message_notification(mjson) == "message":
             for entry in mjson["entry"]:
                 page_id = entry["id"]
                 for messaging_event in entry["messaging"]:
@@ -215,7 +229,7 @@ def insta_webhook_action():
         logging.info("****** insta mjson ******")
         logging.info(mjson)
         logging.info("****** end insta mjson ******")
-        if is_message_notification(mjson):
+        if is_message_notification(mjson) == "message":
             logging.info("****** valid mjson ******")
             for entry in mjson["entry"]:
                 logging.info("****** Entry mjson ******")
@@ -224,12 +238,12 @@ def insta_webhook_action():
                     logging.info("****** messaging mjson ******")
                     sender_id = messaging_event["sender"]["id"]
                     if page_id != sender_id:
-                        recipient_id = messaging_event["recipient"]["id"] #bgeb mn eldict elrecipient key
+                        recipient_id = messaging_event["recipient"]["id"]
                         timestamp = messaging_event["timestamp"]
                         datetime_obj = datetime.fromtimestamp(int(timestamp)/1000)
                         message_id = messaging_event["message"]["mid"]
                         logging.info("****** tagMsg mjson ******")
-                        
+
                         tagMsg = {
                             "recipient":{
                                 "id":sender_id
@@ -280,6 +294,45 @@ def insta_webhook_action():
                             logging.info("****** config mjson ******")
                             conv=Conversation.query.filter_by(conv_id=sender_id).first()
                             if conv is None:
+
+                                departments = Department.query.filter_by(company_id=config.company_id).all()
+                                buttons = []
+                                if departments:
+                                    for dept in departments:
+                                        uppercase_string = dept.name.upper()
+                                        formatted_string = uppercase_string.replace(' ', '_')
+                                        new_button = {
+                                            "type":"postback",
+                                            "title":dept.name,
+                                            "payload":formatted_string
+                                        }
+                                        buttons.append(new_button)
+                                tagMsg = {
+                                    "recipient":{
+                                        "id":sender_id
+                                    },
+                                    "message":{
+                                        "attachment":{
+                                            "type":"template",
+                                            "payload":{
+                                                "template_type":"generic",
+                                                "elements":[
+                                                    {
+                                                        "title":"Welcome!",
+                                                        "image_url":"https://fastly.picsum.photos/id/866/200/300.jpg?hmac=rcadCENKh4rD6MAp6V_ma-AyWv641M4iiOpe1RyFHeI",
+                                                        "subtitle":"We offers the best toolkits for medium and large organisations to monitor and improve employee and customer satisfaction.",
+                                                        "default_action": {
+                                                            "type": "web_url",
+                                                            "url": "https://troolog.azurewebsites.net"
+                                                        },
+                                                        "buttons":buttons
+                                                    }
+                                                ]
+                                            }
+                                        }
+                                    }
+                                }
+
                                 logging.info("****** conv mjson ******")
                                 user = get_userinfo(sender_id, config.access_token)
                                 user_name = str(nanoid.generate())
@@ -317,6 +370,41 @@ def insta_webhook_action():
                                     hour_difference = (datetime.utcnow() - last_message.timestamp).total_seconds() / 3600
                                     if hour_difference >= 24:
                                         r = requests.post('https://graph.facebook.com/v16.0/'+ config.page_id +'/messages/?access_token=' + config.access_token, json=tagMsg)
+        elif is_message_notification(mjson) == "postback":
+            for entry in mjson["entry"]:
+                logging.info("****** Entry mjson ******")
+                page_id = entry["id"]
+                for messaging_event in entry["messaging"]:
+                    sender_id = messaging_event["sender"]["id"]
+                    timestamp = messaging_event["timestamp"]
+                    datetime_obj = datetime.fromtimestamp(int(timestamp)/1000)
+                    message_id = messaging_event["postback"]["mid"]
+                    sender_messageType = "text"
+                    sender_message = messaging_event["postback"]["title"]
+                    department = messaging_event["postback"]["payload"]
+                    sender_AttachmentUrl = None
+                    config = CompanyConfig.query.filter_by(phone_id=page_id).order_by(CompanyConfig.id.desc()).first()
+                    if config:
+                        logging.info("****** config mjson ******")
+                        conv=Conversation.query.filter_by(conv_id=sender_id).first()
+                        if conv:
+                            conv.department = department
+                            db.session.commit()
+                            logging.info("****** conv exist mjson ******")
+                            member = Member.query.filter(and_(Member.mobile_phone == sender_id, Member.Conversation_id==conv.id)).first()
+                            if member:
+                                logging.info("****** member mjson ******")
+                                message = Message(message_id = message_id, message_type=sender_messageType,sender=sender_id, sender_message=sender_message,timestamp=datetime_obj, Conversation_id=conv.id, Member_id=member.id,image_url=sender_AttachmentUrl)
+                                db.session.add(message)
+                                db.session.commit()
+                                msg = {
+                                    "recipient": {"id": sender_id},
+                                    "messaging_type": "RESPONSE",
+                                    "message":{
+                                        "text": "Your enquiry will be directed to " + sender_message
+                                    }
+                                }
+                                r = requests.post('https://graph.facebook.com/v16.0/'+ config.page_id +'/messages/?access_token=' + config.access_token, json=msg)
         return Response(response="EVENT RECEIVED",status=200)
     except Exception as e:
         logging.error(str(e))
@@ -340,7 +428,7 @@ def wp_webhook_action():
         logging.error("****** wp mjson ******")
         logging.error(mjson)
         logging.error("****** end wp mjson ******")
-        if is_message_notification(mjson):
+        if is_message_notification(mjson) == "message":
             for entry in mjson["entry"]:
                 for changes in entry["changes"]:
                     name = "user"
