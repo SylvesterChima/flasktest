@@ -78,11 +78,11 @@ def deleteAll():
 
 @chat.route('/createdepartment', methods=['GET'])
 def CreateDepartment():
-    dept1 = Department(Company_id = 1, name = "Finance")
+    dept1 = Department(company_id = 1, name = "Finance")
     db.session.add(dept1)
-    dept2 = Department(Company_id = 1, name = "Operation")
+    dept2 = Department(company_id = 1, name = "Operation")
     db.session.add(dept2)
-    dept3 = Department(Company_id = 1, name = "Delivery")
+    dept3 = Department(company_id = 1, name = "Delivery")
     db.session.add(dept3)
     db.session.commit()
     return redirect(url_for('chat.chatapp'))
